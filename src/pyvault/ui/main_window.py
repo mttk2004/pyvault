@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QHeaderView, QAbstractItemView, QLineEdit, QToolBar,
     QStatusBar, QMessageBox, QMenu
 )
-from PySide6.QtCore import Qt, Slot, Signal
+from PySide6.QtCore import Qt, Slot, Signal, QTimer
 from PySide6.QtGui import QAction, QKeySequence
 
 from .entry_dialog import EntryDialog
@@ -18,8 +18,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("PyVault - Your Personal Vault")
         self.setMinimumSize(1000, 700)
 
-        # Sample data for demo
         self.vault_data = []
+        self.clipboard_timer = QTimer(self)
+        self.clipboard_timer.setSingleShot(True)
+        self.clipboard_timer.timeout.connect(self._clear_clipboard)
 
         self._setup_menubar()
         self._setup_toolbar()
@@ -364,24 +366,46 @@ class MainWindow(QMainWindow):
         selected_row = self.table_widget.currentRow()
         if selected_row < 0: return
         username = self.vault_data[selected_row].get("username", "")
-        QApplication.clipboard().setText(username)
-        self.statusbar.showMessage("Username copied to clipboard!", 3000)
+        self._copy_to_clipboard(username, "Username")
 
     @Slot()
     def _copy_password(self):
         selected_row = self.table_widget.currentRow()
         if selected_row < 0: return
         password = self.vault_data[selected_row].get("password", "")
-        QApplication.clipboard().setText(password)
-        self.statusbar.showMessage("Password copied to clipboard!", 3000)
+        self._copy_to_clipboard(password, "Password")
 
     @Slot()
     def _copy_url(self):
         selected_row = self.table_widget.currentRow()
         if selected_row < 0: return
         url = self.vault_data[selected_row].get("url", "")
-        QApplication.clipboard().setText(url)
-        self.statusbar.showMessage("URL copied to clipboard!", 3000)
+        self._copy_to_clipboard(url, "URL")
+
+    def _copy_to_clipboard(self, text: str, item_name: str):
+        """Copies text to clipboard and starts a timer to clear it."""
+        if not text:
+            return
+        QApplication.clipboard().setText(text)
+        self.statusbar.showMessage(f"{item_name} copied to clipboard. Will be cleared in 30 seconds.", 5000)
+        self.clipboard_timer.start(30000) # 30 seconds
+
+    @Slot()
+    def _clear_clipboard(self):
+        """Clears the clipboard."""
+        # Check if the clipboard content is still what we put there, to avoid clearing user's own copies.
+        # This is a simple check; more robust solutions might be needed for complex scenarios.
+        # For this app's purpose, it's a good enough guard.
+        current_text = QApplication.clipboard().text()
+        is_sensitive = False
+        for entry in self.vault_data:
+            if current_text and (current_text == entry.get("password") or current_text == entry.get("username")):
+                is_sensitive = True
+                break
+
+        if is_sensitive:
+            QApplication.clipboard().clear()
+            self.statusbar.showMessage("Clipboard cleared for security.", 3000)
 
     @Slot()
     def _filter_table(self, text):

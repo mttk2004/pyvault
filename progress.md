@@ -40,10 +40,10 @@
 
 ## Giai đoạn 4: Hoàn thiện và Mở rộng
 
-- [ ] **Bước 6: Hoàn thiện các tính năng cốt lõi**
-    - [ ] Hoàn thiện chức năng Thêm/Sửa/Xóa các mục đăng nhập.
-    - [ ] Thêm tính năng "Sao chép vào clipboard" một cách an toàn.
-    - [ ] Thêm chức năng tìm kiếm trong danh sách mật khẩu.
+- [x] **Bước 6: Hoàn thiện các tính năng cốt lõi**
+    - [x] Hoàn thiện chức năng Thêm/Sửa/Xóa các mục đăng nhập.
+    - [x] Thêm tính năng "Sao chép vào clipboard" một cách an toàn.
+    - [x] Thêm chức năng tìm kiếm trong danh sách mật khẩu.
 
 - [ ] **Bước 7: Các tính năng mở rộng (Tùy chọn)**
     - [ ] Thêm chức năng "Tạo mật khẩu ngẫu nhiên".
