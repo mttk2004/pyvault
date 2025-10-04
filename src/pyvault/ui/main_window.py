@@ -81,20 +81,46 @@ class MainWindow(QMainWindow):
         """Creates the toolbar."""
         toolbar = QToolBar("Main Toolbar")
         toolbar.setMovable(False)
+        toolbar.setStyleSheet("""
+            QToolBar {
+                background-color: #f8f9fa;
+                border: none;
+                border-bottom: 1px solid #e9ecef;
+                padding: 8px 16px;
+                spacing: 8px;
+            }
+            QToolButton {
+                background-color: white;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                padding: 8px 16px;
+                margin: 2px;
+                font-size: 13px;
+                font-weight: 500;
+                color: #495057;
+            }
+            QToolButton:hover {
+                background-color: #e9ecef;
+                border-color: #adb5bd;
+            }
+            QToolButton:pressed {
+                background-color: #dee2e6;
+            }
+        """)
         self.addToolBar(toolbar)
 
         # Add Entry button
-        add_action = QAction("➕ Add Entry", self)
+        add_action = QAction("+ Add Entry", self)
         add_action.triggered.connect(self._add_entry)
         toolbar.addAction(add_action)
 
         # Edit Entry button
-        edit_action = QAction("✏️ Edit", self)
+        edit_action = QAction("Edit", self)
         edit_action.triggered.connect(self._edit_entry)
         toolbar.addAction(edit_action)
 
         # Delete Entry button
-        delete_action = QAction("🗑️ Delete", self)
+        delete_action = QAction("Delete", self)
         delete_action.triggered.connect(self._delete_entry)
         toolbar.addAction(delete_action)
 
@@ -102,30 +128,98 @@ class MainWindow(QMainWindow):
 
         # Search bar
         self.search_bar = QLineEdit()
-        self.search_bar.setObjectName("SearchBar")
-        self.search_bar.setPlaceholderText("🔍 Search your vault...")
+        self.search_bar.setPlaceholderText("Search your vault...")
         self.search_bar.setMaximumWidth(300)
+        self.search_bar.setStyleSheet("""
+            QLineEdit {
+                background-color: white;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 13px;
+                color: #495057;
+            }
+            QLineEdit:focus {
+                border-color: #007aff;
+                outline: none;
+            }
+            QLineEdit::placeholder {
+                color: #adb5bd;
+            }
+        """)
         self.search_bar.textChanged.connect(self._filter_table)
         toolbar.addWidget(self.search_bar)
 
         toolbar.addSeparator()
 
         # Lock button
-        lock_action = QAction("🔒 Lock Vault", self)
+        lock_action = QAction("Lock Vault", self)
         toolbar.addAction(lock_action)
 
     def _setup_central_widget(self):
         """Sets up the main UI components."""
         self.central_widget = QWidget()
+        self.central_widget.setStyleSheet("""
+            QWidget {
+                background-color: #f8f9fa;
+            }
+        """)
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)
-        self.layout.setContentsMargins(16, 16, 16, 16)
-        self.layout.setSpacing(12)
+        self.layout.setContentsMargins(20, 16, 20, 16)
+        self.layout.setSpacing(16)
 
         # Table for credentials
         self.table_widget = QTableWidget()
         self.table_widget.setColumnCount(4)
         self.table_widget.setHorizontalHeaderLabels(["Service", "Username", "Password", "URL"])
+
+        # Modern table styling
+        self.table_widget.setStyleSheet("""
+            QTableWidget {
+                background-color: white;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                gridline-color: #f1f3f5;
+                selection-background-color: #e3f2fd;
+                font-size: 13px;
+            }
+            QTableWidget::item {
+                padding: 12px 8px;
+                border: none;
+            }
+            QTableWidget::item:selected {
+                background-color: #e3f2fd;
+                color: #1565c0;
+            }
+            QHeaderView::section {
+                background-color: #f8f9fa;
+                border: none;
+                border-bottom: 2px solid #dee2e6;
+                padding: 12px 8px;
+                font-weight: 600;
+                font-size: 12px;
+                color: #495057;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            QTableWidget::item:alternate {
+                background-color: #f8f9fa;
+            }
+            QScrollBar:vertical {
+                background-color: #f1f3f5;
+                width: 12px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #adb5bd;
+                border-radius: 6px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background-color: #6c757d;
+            }
+        """)
 
         # Style the table
         self.table_widget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
@@ -138,6 +232,7 @@ class MainWindow(QMainWindow):
         self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table_widget.verticalHeader().setVisible(False)
         self.table_widget.setAlternatingRowColors(True)
+        self.table_widget.setShowGrid(False)
 
         # Context menu
         self.table_widget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -151,24 +246,54 @@ class MainWindow(QMainWindow):
     def _setup_statusbar(self):
         """Creates the status bar."""
         self.statusbar = QStatusBar()
+        self.statusbar.setStyleSheet("""
+            QStatusBar {
+                background-color: #f8f9fa;
+                border-top: 1px solid #dee2e6;
+                color: #6c757d;
+                font-size: 12px;
+                padding: 4px 16px;
+            }
+        """)
         self.setStatusBar(self.statusbar)
         self.statusbar.showMessage("Ready | 0 entries")
 
     def _show_context_menu(self, position):
         """Shows context menu for table items."""
         menu = QMenu()
+        menu.setStyleSheet("""
+            QMenu {
+                background-color: white;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 4px 0px;
+            }
+            QMenu::item {
+                padding: 8px 16px;
+                color: #495057;
+                font-size: 13px;
+            }
+            QMenu::item:selected {
+                background-color: #e9ecef;
+            }
+            QMenu::separator {
+                height: 1px;
+                background-color: #dee2e6;
+                margin: 4px 8px;
+            }
+        """)
 
-        edit_action = menu.addAction("✏️ Edit")
+        edit_action = menu.addAction("Edit Entry")
         edit_action.triggered.connect(self._edit_entry)
 
-        delete_action = menu.addAction("🗑️ Delete")
+        delete_action = menu.addAction("Delete Entry")
         delete_action.triggered.connect(self._delete_entry)
 
         menu.addSeparator()
 
-        copy_user_action = menu.addAction("📋 Copy Username")
-        copy_pass_action = menu.addAction("🔑 Copy Password")
-        copy_url_action = menu.addAction("🔗 Copy URL")
+        copy_user_action = menu.addAction("Copy Username")
+        copy_pass_action = menu.addAction("Copy Password")
+        copy_url_action = menu.addAction("Copy URL")
 
         menu.exec(self.table_widget.viewport().mapToGlobal(position))
 
