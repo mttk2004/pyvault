@@ -62,12 +62,12 @@
 
 Phiên bản đầu tiên của PyVault đã được hoàn thành với đầy đủ các tính năng cốt lõi:
 
-✅ **Bảo mật hàng đầu**: Mã hóa AES-256-GCM với PBKDF2 key derivation  
-✅ **Quản lý mật khẩu**: Thêm, sửa, xóa và tìm kiếm thông tin đăng nhập  
-✅ **Sao chép an toàn**: Tự động xóa clipboard sau 30 giây  
-✅ **Tự động khóa**: Khóa vault sau 5 phút không hoạt động  
-✅ **Giao diện hiện đại**: UI thân thiện được xây dựng với PySide6  
-✅ **Đóng gói sẵn sàng**: Tệp thực thi độc lập cho Linux  
+✅ **Bảo mật hàng đầu**: Mã hóa AES-256-GCM với PBKDF2 key derivation
+✅ **Quản lý mật khẩu**: Thêm, sửa, xóa và tìm kiếm thông tin đăng nhập
+✅ **Sao chép an toàn**: Tự động xóa clipboard sau 30 giây
+✅ **Tự động khóa**: Khóa vault sau 5 phút không hoạt động
+✅ **Giao diện hiện đại**: UI thân thiện được xây dựng với PySide6
+✅ **Đóng gói sẵn sàng**: Tệp thực thi độc lập cho Linux
 
 **Các tính năng sẽ phát triển trong tương lai:**
 - Tối ưu hóa tạo mật khẩu ngẫu nhiên

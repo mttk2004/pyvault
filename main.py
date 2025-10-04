@@ -8,11 +8,11 @@ from PySide6.QtCore import QTimer, QObject, QEvent, Signal
 # Add src to the Python path to allow absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
-from pyvault.ui.login_window import LoginWindow
-from pyvault.ui.main_window import MainWindow
-from pyvault.ui.styles import MAIN_STYLESHEET
-from pyvault import crypto_logic
-from pyvault import vault_manager
+from src.ui.login_window import LoginWindow
+from src.ui.main_window import MainWindow
+from src.ui.styles import MAIN_STYLESHEET
+from src import crypto_logic
+from src import vault_manager
 
 VAULT_FILE = "vault.dat"
 LOCK_TIMEOUT_MINUTES = 5 # Lock after 5 minutes of inactivity

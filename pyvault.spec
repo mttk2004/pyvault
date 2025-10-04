@@ -7,6 +7,7 @@
 a = Analysis(
     ['main.py'],
     pathex=['/home/kiet/projects/pyvault'],
+    datas=[('src/assets', 'assets')],  # Include assets folder
     binaries=[],
     datas=[],
     hiddenimports=['PySide6.QtCore', 'PySide6.QtGui', 'PySide6.QtWidgets'],
