@@ -12,11 +12,11 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Directories following Linux FHS (Filesystem Hierarchy Standard)
-VAULT_DIR="$HOME/.pyvault"
-PYVAULT_APP_DIR="$VAULT_DIR/app"  # Application files inside vault dir
-BIN_DIR="$HOME/.local/bin"
-DESKTOP_DIR="$HOME/.local/share/applications"
-ICON_DIR="$HOME/.local/share/icons"
+CONFIG_DIR="$HOME/.config/pyvault"           # User vault data (vault.dat)
+PYVAULT_APP_DIR="$HOME/.local/share/pyvault" # Application files & assets
+BIN_DIR="$HOME/.local/bin"                   # Executable launcher
+DESKTOP_DIR="$HOME/.local/share/applications" # Desktop entries
+ICON_DIR="$HOME/.local/share/icons"          # Application icons
 
 print_header() {
     echo -e "${BLUE}================================${NC}"
@@ -44,14 +44,16 @@ print_info() {
 create_directories() {
     print_info "Creating necessary directories..."
 
-    mkdir -p "$VAULT_DIR"
+    mkdir -p "$CONFIG_DIR"
     mkdir -p "$PYVAULT_APP_DIR"
-    mkdir -p "$BIN_DIR"
+    mkdir -p "$BIN_DIR" 
     mkdir -p "$DESKTOP_DIR"
     mkdir -p "$ICON_DIR"
-
-    # Secure vault directory permissions (includes app files)
-    chmod 700 "$VAULT_DIR"    print_success "Directories created successfully"
+    
+    # Secure config directory permissions (vault data)
+    chmod 700 "$CONFIG_DIR"
+    
+    print_success "Directories created successfully"
 }
 
 # Function to install PyVault files
@@ -76,13 +78,13 @@ create_wrapper() {
     cat > "$BIN_DIR/pyvault" << 'EOF'
 #!/bin/bash
 # PyVault Launcher Script
-# Ensures consistent vault directory location
+# Follows Linux FHS: config in ~/.config, app in ~/.local/share
 
-# Set working directory to home (vault will be in ~/.pyvault/)
+# Set working directory to home
 cd "$HOME"
 
-# Launch PyVault from ~/.pyvault/app/
-exec "$HOME/.pyvault/app/pyvault" "$@"
+# Launch PyVault from ~/.local/share/pyvault/
+exec "$HOME/.local/share/pyvault/pyvault" "$@"
 EOF
 
     chmod +x "$BIN_DIR/pyvault"
@@ -136,7 +138,7 @@ migrate_vault() {
         echo "$VAULT_FILES"
 
         echo -e "\n${YELLOW}Choose an option:${NC}"
-        echo "1) Copy most recent vault.dat to ~/.pyvault/"
+        echo "1) Copy most recent vault.dat to ~/.config/pyvault/"
         echo "2) Skip migration (start fresh)"
         echo "3) Show file details to choose manually"
 
@@ -145,7 +147,7 @@ migrate_vault() {
         case $choice in
             1)
                 LATEST_VAULT=$(echo "$VAULT_FILES" | xargs ls -t | head -n1)
-                cp "$LATEST_VAULT" "$VAULT_DIR/vault.dat"
+                cp "$LATEST_VAULT" "$CONFIG_DIR/vault.dat"
                 print_success "Migrated vault from: $LATEST_VAULT"
                 ;;
             2)
@@ -155,7 +157,7 @@ migrate_vault() {
                 echo "$VAULT_FILES" | xargs ls -la
                 read -p "Enter full path to vault file to migrate (or press Enter to skip): " SELECTED_VAULT
                 if [ -n "$SELECTED_VAULT" ] && [ -f "$SELECTED_VAULT" ]; then
-                    cp "$SELECTED_VAULT" "$VAULT_DIR/vault.dat"
+                    cp "$SELECTED_VAULT" "$CONFIG_DIR/vault.dat"
                     print_success "Migrated vault from: $SELECTED_VAULT"
                 else
                     print_info "No vault migrated"
@@ -187,12 +189,12 @@ main() {
     print_info "How to use:"
     echo "• Type 'pyvault' in terminal"
     echo "• Search 'PyVault' in application menu"
-    echo "• Vault data will be stored in ~/.pyvault/vault.dat"
-    echo "• Application files in ~/.pyvault/app/"
+    echo "• Vault data will be stored in ~/.config/pyvault/vault.dat"
+    echo "• Application files in ~/.local/share/pyvault/"
     echo
     print_info "To uninstall:"
     echo "rm -f '$BIN_DIR/pyvault' '$DESKTOP_DIR/pyvault.desktop'"
-    echo "rm -rf '$VAULT_DIR'  # This will delete your password data AND app files!"
+    echo "rm -rf '$CONFIG_DIR' '$PYVAULT_APP_DIR'  # This will delete your password data AND app files!"
 }
 
 # Run main function

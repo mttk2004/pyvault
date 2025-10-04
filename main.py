@@ -14,13 +14,13 @@ from src.ui.styles import MAIN_STYLESHEET
 from src import crypto_logic
 from src import vault_manager
 
-# Use fixed vault directory in user's home folder
-VAULT_DIR = os.path.expanduser("~/.pyvault")
+# Follow Linux FHS: config data in ~/.config/pyvault/
+VAULT_DIR = os.path.expanduser("~/.config/pyvault")
 VAULT_FILE = os.path.join(VAULT_DIR, "vault.dat")
 LOCK_TIMEOUT_MINUTES = 5 # Lock after 5 minutes of inactivity
 
 def ensure_vault_directory():
-    """Ensure the vault directory exists."""
+    """Ensure the vault config directory exists."""
     if not os.path.exists(VAULT_DIR):
         os.makedirs(VAULT_DIR, mode=0o700)  # Create with secure permissions
 
