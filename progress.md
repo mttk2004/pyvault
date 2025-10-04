@@ -32,11 +32,11 @@
     - [x] Thiết kế cửa sổ "Thêm/Sửa" thông tin đăng nhập.
     - [x] Chuyển các file thiết kế `.ui` (từ Qt Designer) thành code Python.
 
-- [ ] **Bước 5: Tích hợp Logic vào Giao diện**
-    - [ ] Kết nối sự kiện "Mở khóa" với logic `load_vault`, `derive_key`, và `decrypt`.
-    - [ ] Kết nối sự kiện "Lưu" (thêm/sửa) với logic mã hóa lại toàn bộ dữ liệu và `save_vault`.
-    - [ ] Hiển thị dữ liệu đã giải mã lên giao diện chính.
-    - [ ] Xử lý luồng tạo két sắt mới và lưu `salt`.
+- [x] **Bước 5: Tích hợp Logic vào Giao diện**
+    - [x] Kết nối sự kiện "Mở khóa" với logic `load_vault`, `derive_key`, và `decrypt`.
+    - [x] Kết nối sự kiện "Lưu" (thêm/sửa) với logic mã hóa lại toàn bộ dữ liệu và `save_vault`.
+    - [x] Hiển thị dữ liệu đã giải mã lên giao diện chính.
+    - [x] Xử lý luồng tạo két sắt mới và lưu `salt`.
 
 ## Giai đoạn 4: Hoàn thiện và Mở rộng
 
@@ -52,8 +52,26 @@
 
 ## Giai đoạn 5: Đóng gói và Phát hành
 
-- [ ] Cài đặt `PyInstaller`.
-- [ ] Viết script để đóng gói ứng dụng cho Windows.
-- [ ] Viết script để đóng gói ứng dụng cho macOS.
-- [ ] Viết script để đóng gói ứng dụng cho Linux.
-- [ ] Kiểm thử ứng dụng trên các nền tảng.
+- [x] Cài đặt `PyInstaller`.
+- [x] Tạo tệp `pyvault.spec` để cấu hình quá trình đóng gói.
+- [x] Xây dựng ứng dụng cho Linux bằng PyInstaller.
+- [x] Cập nhật tài liệu `README.md` với hướng dẫn sử dụng phiên bản đã đóng gói.
+- [x] Hoàn thành phiên bản 1.0.0 của PyVault.
+
+## Tổng kết Phiên bản 1.0.0
+
+Phiên bản đầu tiên của PyVault đã được hoàn thành với đầy đủ các tính năng cốt lõi:
+
+✅ **Bảo mật hàng đầu**: Mã hóa AES-256-GCM với PBKDF2 key derivation  
+✅ **Quản lý mật khẩu**: Thêm, sửa, xóa và tìm kiếm thông tin đăng nhập  
+✅ **Sao chép an toàn**: Tự động xóa clipboard sau 30 giây  
+✅ **Tự động khóa**: Khóa vault sau 5 phút không hoạt động  
+✅ **Giao diện hiện đại**: UI thân thiện được xây dựng với PySide6  
+✅ **Đóng gói sẵn sàng**: Tệp thực thi độc lập cho Linux  
+
+**Các tính năng sẽ phát triển trong tương lai:**
+- Tối ưu hóa tạo mật khẩu ngẫu nhiên
+- Chỉ báo độ mạnh mật khẩu nâng cao
+- Đóng gói cho Windows và macOS
+- Đồng bộ hóa đám mây (tùy chọn)
+- Import/Export dữ liệu

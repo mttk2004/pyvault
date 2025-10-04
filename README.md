@@ -32,7 +32,22 @@ Dữ liệu của bạn không bao giờ rời khỏi máy tính và không đư
 - **Giao diện người dùng (GUI):** PySide6
 - **Thư viện mã hóa:** `cryptography`
 
-## Cài đặt và Chạy
+## Tải xuống và Sử dụng
+
+### Phiên bản đã đóng gói (Khuyên dùng)
+
+**Tải xuống phiên bản 1.0.0:**
+- [Linux (x64)](https://github.com/mttk2004/pyvault/releases/download/v1.0.0/pyvault-linux-x64.tar.gz)
+- [Windows (x64)](https://github.com/mttk2004/pyvault/releases/download/v1.0.0/pyvault-windows-x64.zip)
+- [macOS (Intel/ARM)](https://github.com/mttk2004/pyvault/releases/download/v1.0.0/pyvault-macos.dmg)
+
+**Chạy ứng dụng:**
+
+- **Linux:** Giải nén và chạy `./pyvault`
+- **Windows:** Giải nén và chạy `pyvault.exe`
+- **macOS:** Mở file `.dmg`, kéo `PyVault.app` vào thư mục Applications
+
+### Chạy từ mã nguồn (Cho nhà phát triển)
 
 1.  **Clone repository:**
     ```bash
@@ -59,6 +74,18 @@ Dữ liệu của bạn không bao giờ rời khỏi máy tính và không đư
     ```bash
     python main.py
     ```
+
+### Xây dựng từ mã nguồn
+
+```bash
+# Cài đặt PyInstaller
+pip install pyinstaller
+
+# Xây dựng ứng dụng
+python -m PyInstaller --clean pyvault.spec
+
+# Ứng dụng sẽ được tạo trong thư mục dist/
+```
 
 ## Giấy phép
 
