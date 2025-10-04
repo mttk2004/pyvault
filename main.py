@@ -14,8 +14,15 @@ from src.ui.styles import MAIN_STYLESHEET
 from src import crypto_logic
 from src import vault_manager
 
-VAULT_FILE = "vault.dat"
+# Use fixed vault directory in user's home folder
+VAULT_DIR = os.path.expanduser("~/.pyvault")
+VAULT_FILE = os.path.join(VAULT_DIR, "vault.dat")
 LOCK_TIMEOUT_MINUTES = 5 # Lock after 5 minutes of inactivity
+
+def ensure_vault_directory():
+    """Ensure the vault directory exists."""
+    if not os.path.exists(VAULT_DIR):
+        os.makedirs(VAULT_DIR, mode=0o700)  # Create with secure permissions
 
 class ActivityMonitor(QObject):
     activity = Signal()
@@ -38,6 +45,9 @@ class PyVaultApp(QApplication):
 
         self.key = None
         self.data = []
+
+        # Ensure vault directory exists
+        ensure_vault_directory()
         self.vault_exists = os.path.exists(VAULT_FILE)
 
         self.login_window = LoginWindow(self.vault_exists)
