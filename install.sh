@@ -193,8 +193,8 @@ main() {
     echo "• Application files in ~/.local/share/pyvault/"
     echo
     print_info "To uninstall:"
-    echo "rm -f '$BIN_DIR/pyvault' '$DESKTOP_DIR/pyvault.desktop'"
-    echo "rm -rf '$CONFIG_DIR' '$PYVAULT_APP_DIR'  # This will delete your password data AND app files!"
+    echo "• Run: ./uninstall.sh (safe interactive removal)"
+    echo "• Or: ./uninstall.sh --force (keep vault data)"
 }
 
 # Run main function

@@ -85,6 +85,38 @@ python -m PyInstaller --clean pyvault.spec
 # Ứng dụng sẽ được tạo trong thư mục dist/
 ```
 
+## Cài đặt và Gỡ bỏ
+
+### Cài đặt hệ thống
+```bash
+# Giải nén và chạy script cài đặt
+tar -xzf pyvault-v1.0.0-linux-x64.tar.gz
+cd pyvault/
+./install.sh
+```
+
+### Sử dụng sau khi cài đặt
+```bash
+# Chạy từ bất kỳ đâu
+pyvault
+
+# Hoặc tìm "PyVault" trong Application Menu
+```
+
+### Gỡ cài đặt
+```bash
+# Gỗ cài đặt tương tác (an toàn)
+./uninstall.sh
+
+# Gỡ cài đặt tự động (giữ lại dữ liệu vault)
+./uninstall.sh --force
+
+# Xem trợ giúp
+./uninstall.sh --help
+```
+
+**Lưu ý:** Dữ liệu vault được lưu tại `~/.config/pyvault/vault.dat` và sẽ được bảo vệ trừ khi bạn chọn xóa.
+
 ## Giấy phép
 
 Dự án này được cấp phép theo Giấy phép MIT. Xem file `LICENSE` để biết thêm chi tiết.
