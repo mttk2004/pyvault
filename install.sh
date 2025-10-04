@@ -11,12 +11,12 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Directories
-PYVAULT_DIR="$HOME/Applications/PyVault"
+# Directories following Linux FHS (Filesystem Hierarchy Standard)
+VAULT_DIR="$HOME/.pyvault"
+PYVAULT_APP_DIR="$VAULT_DIR/app"  # Application files inside vault dir
 BIN_DIR="$HOME/.local/bin"
 DESKTOP_DIR="$HOME/.local/share/applications"
 ICON_DIR="$HOME/.local/share/icons"
-VAULT_DIR="$HOME/.pyvault"
 
 print_header() {
     echo -e "${BLUE}================================${NC}"
@@ -44,27 +44,25 @@ print_info() {
 create_directories() {
     print_info "Creating necessary directories..."
 
-    mkdir -p "$PYVAULT_DIR"
+    mkdir -p "$VAULT_DIR"
+    mkdir -p "$PYVAULT_APP_DIR"
     mkdir -p "$BIN_DIR"
     mkdir -p "$DESKTOP_DIR"
     mkdir -p "$ICON_DIR"
-    mkdir -p "$VAULT_DIR"
 
-    # Secure vault directory permissions
-    chmod 700 "$VAULT_DIR"
-
-    print_success "Directories created successfully"
+    # Secure vault directory permissions (includes app files)
+    chmod 700 "$VAULT_DIR"    print_success "Directories created successfully"
 }
 
 # Function to install PyVault files
 install_pyvault() {
     print_info "Installing PyVault application..."
 
-    # Copy entire pyvault directory to Applications
+    # Copy entire pyvault directory to ~/.pyvault/app/
     if [ -d "./dist/pyvault" ]; then
-        cp -r ./dist/pyvault/* "$PYVAULT_DIR/"
-        chmod +x "$PYVAULT_DIR/pyvault"
-        print_success "PyVault files installed to $PYVAULT_DIR"
+        cp -r ./dist/pyvault/* "$PYVAULT_APP_DIR/"
+        chmod +x "$PYVAULT_APP_DIR/pyvault"
+        print_success "PyVault files installed to $PYVAULT_APP_DIR"
     else
         print_error "PyVault build not found. Please run 'bash -c \"source venv/bin/activate && python -m PyInstaller --clean pyvault.spec\"' first"
         exit 1
@@ -83,8 +81,8 @@ create_wrapper() {
 # Set working directory to home (vault will be in ~/.pyvault/)
 cd "$HOME"
 
-# Launch PyVault
-exec "$HOME/Applications/PyVault/pyvault" "$@"
+# Launch PyVault from ~/.pyvault/app/
+exec "$HOME/.pyvault/app/pyvault" "$@"
 EOF
 
     chmod +x "$BIN_DIR/pyvault"
@@ -190,10 +188,11 @@ main() {
     echo "• Type 'pyvault' in terminal"
     echo "• Search 'PyVault' in application menu"
     echo "• Vault data will be stored in ~/.pyvault/vault.dat"
+    echo "• Application files in ~/.pyvault/app/"
     echo
     print_info "To uninstall:"
-    echo "rm -rf '$PYVAULT_DIR' '$BIN_DIR/pyvault' '$DESKTOP_DIR/pyvault.desktop'"
-    echo "rm -rf '$VAULT_DIR'  # This will delete your password data!"
+    echo "rm -f '$BIN_DIR/pyvault' '$DESKTOP_DIR/pyvault.desktop'"
+    echo "rm -rf '$VAULT_DIR'  # This will delete your password data AND app files!"
 }
 
 # Run main function
