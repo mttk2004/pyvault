@@ -18,10 +18,10 @@
     - [x] Viết hàm `decrypt(nonce, ciphertext, key)` để giải mã và xác thực dữ liệu.
     - [x] Viết unit test cho các hàm mã hóa để đảm bảo hoạt động chính xác.
 
-- [ ] **Bước 3: Xây dựng logic quản lý file (`vault_manager.py`)**
-    - [ ] Viết hàm `save_vault(file_path, salt, nonce, ciphertext)` để lưu dữ liệu vào file.
-    - [ ] Viết hàm `load_vault(file_path)` để đọc dữ liệu từ file.
-    - [ ] Xử lý các trường hợp lỗi (ví dụ: file không tồn tại).
+- [x] **Bước 3: Xây dựng logic quản lý file (`vault_manager.py`)**
+    - [x] Viết hàm `save_vault(file_path, salt, nonce, ciphertext)` để lưu dữ liệu vào file.
+    - [x] Viết hàm `load_vault(file_path)` để đọc dữ liệu từ file.
+    - [x] Xử lý các trường hợp lỗi (ví dụ: file không tồn tại).
 
 ## Giai đoạn 3: Giao diện Người dùng (UI)
 
