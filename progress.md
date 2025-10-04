@@ -12,11 +12,11 @@
 
 ## Giai đoạn 2: Xây dựng Lõi
 
-- [ ] **Bước 2: Xây dựng lõi mã hóa (`crypto_logic.py`)**
-    - [ ] Viết hàm `derive_key(password, salt)` sử dụng `PBKDF2HMAC`.
-    - [ ] Viết hàm `encrypt(data, key)` sử dụng `AESGCM` để trả về `(nonce, ciphertext)`.
-    - [ ] Viết hàm `decrypt(nonce, ciphertext, key)` để giải mã và xác thực dữ liệu.
-    - [ ] Viết unit test cho các hàm mã hóa để đảm bảo hoạt động chính xác.
+- [x] **Bước 2: Xây dựng lõi mã hóa (`crypto_logic.py`)**
+    - [x] Viết hàm `derive_key(password, salt)` sử dụng `PBKDF2HMAC`.
+    - [x] Viết hàm `encrypt(data, key)` sử dụng `AESGCM` để trả về `(nonce, ciphertext)`.
+    - [x] Viết hàm `decrypt(nonce, ciphertext, key)` để giải mã và xác thực dữ liệu.
+    - [x] Viết unit test cho các hàm mã hóa để đảm bảo hoạt động chính xác.
 
 - [ ] **Bước 3: Xây dựng logic quản lý file (`vault_manager.py`)**
     - [ ] Viết hàm `save_vault(file_path, salt, nonce, ciphertext)` để lưu dữ liệu vào file.
