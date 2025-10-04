@@ -25,12 +25,12 @@
 
 ## Giai đoạn 3: Giao diện Người dùng (UI)
 
-- [ ] **Bước 4: Thiết kế và Xây dựng Giao diện**
-    - [ ] Thiết kế cửa sổ "Tạo Mật khẩu chủ" (cho lần đầu sử dụng).
-    - [ ] Thiết kế cửa sổ "Mở khóa" (yêu cầu Mật khẩu chủ).
-    - [ ] Thiết kế cửa sổ chính hiển thị danh sách mật khẩu (dùng `QTableWidget` hoặc `QListView`).
-    - [ ] Thiết kế cửa sổ "Thêm/Sửa" thông tin đăng nhập.
-    - [ ] Chuyển các file thiết kế `.ui` (từ Qt Designer) thành code Python.
+- [x] **Bước 4: Thiết kế và Xây dựng Giao diện**
+    - [x] Thiết kế cửa sổ "Tạo Mật khẩu chủ" (cho lần đầu sử dụng).
+    - [x] Thiết kế cửa sổ "Mở khóa" (yêu cầu Mật khẩu chủ).
+    - [x] Thiết kế cửa sổ chính hiển thị danh sách mật khẩu (dùng `QTableWidget` hoặc `QListView`).
+    - [x] Thiết kế cửa sổ "Thêm/Sửa" thông tin đăng nhập.
+    - [x] Chuyển các file thiết kế `.ui` (từ Qt Designer) thành code Python.
 
 - [ ] **Bước 5: Tích hợp Logic vào Giao diện**
     - [ ] Kết nối sự kiện "Mở khóa" với logic `load_vault`, `derive_key`, và `decrypt`.
