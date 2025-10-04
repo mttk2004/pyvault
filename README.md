@@ -34,18 +34,16 @@ Dữ liệu của bạn không bao giờ rời khỏi máy tính và không đư
 
 ## Tải xuống và Sử dụng
 
-### Phiên bản đã đóng gói (Khuyên dùng)
+### Phiên bản đã đóng gói
 
-**Tải xuống phiên bản 1.0.0:**
-- [Linux (x64)](https://github.com/mttk2004/pyvault/releases/download/v1.0.0/pyvault-linux-x64.tar.gz)
-- [Windows (x64)](https://github.com/mttk2004/pyvault/releases/download/v1.0.0/pyvault-windows-x64.zip)
-- [macOS (Intel/ARM)](https://github.com/mttk2004/pyvault/releases/download/v1.0.0/pyvault-macos.dmg)
+**📦 Hiện tại có sẵn:**
+- **Linux (x64)**: [Tải xuống v1.0.0](https://github.com/mttk2004/pyvault/releases/download/v1.0.0/pyvault-v1.0.0-linux-x64.tar.gz)
 
-**Chạy ứng dụng:**
+**🚧 Đang phát triển:**
+- **Windows (x64)**: Sẽ có trong phiên bản tương lai
+- **macOS (Intel/ARM)**: Sẽ có trong phiên bản tương lai
 
-- **Linux:** Giải nén và chạy `./pyvault`
-- **Windows:** Giải nén và chạy `pyvault.exe`
-- **macOS:** Mở file `.dmg`, kéo `PyVault.app` vào thư mục Applications
+> **Lưu ý**: Hiện tại chỉ có bản Linux. Để cài đặt, tải file tar.gz và giải nén, sau đó chạy file `pyvault` trong thư mục.
 
 ### Chạy từ mã nguồn (Cho nhà phát triển)
 
