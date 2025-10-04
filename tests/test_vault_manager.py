@@ -25,7 +25,7 @@ class TestVaultManager(unittest.TestCase):
     def test_save_and_load_vault_roundtrip(self):
         """Test that saving and loading a vault works correctly."""
         vault_manager.save_vault(self.test_file, self.salt, self.nonce, self.ciphertext)
-        
+
         self.assertTrue(os.path.exists(self.test_file))
 
         loaded_salt, loaded_nonce, loaded_ciphertext = vault_manager.load_vault(self.test_file)
@@ -43,7 +43,7 @@ class TestVaultManager(unittest.TestCase):
         """Test that loading a vault with invalid JSON raises VaultCorruptedError."""
         with open(self.test_file, 'w') as f:
             f.write("{ not json }")
-        
+
         with self.assertRaises(vault_manager.VaultCorruptedError):
             vault_manager.load_vault(self.test_file)
 
