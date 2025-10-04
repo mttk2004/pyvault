@@ -49,30 +49,30 @@ print_critical() {
 # Function to check if PyVault is installed
 check_installation() {
     local components_found=0
-    
+
     echo -e "\n${BLUE}Checking PyVault installation...${NC}"
-    
+
     if [ -f "$PYVAULT_BIN" ]; then
         echo "• Launcher: Found at $PYVAULT_BIN"
         components_found=$((components_found + 1))
     else
         echo "• Launcher: Not found"
     fi
-    
+
     if [ -d "$PYVAULT_APP_DIR" ]; then
         echo "• Application: Found at $PYVAULT_APP_DIR"
         components_found=$((components_found + 1))
     else
         echo "• Application: Not found"
     fi
-    
+
     if [ -f "$DESKTOP_FILE" ]; then
         echo "• Desktop entry: Found at $DESKTOP_FILE"
         components_found=$((components_found + 1))
     else
         echo "• Desktop entry: Not found"
     fi
-    
+
     if [ -d "$CONFIG_DIR" ]; then
         echo "• Vault data: Found at $CONFIG_DIR"
         if [ -f "$CONFIG_DIR/vault.dat" ]; then
@@ -83,30 +83,30 @@ check_installation() {
     else
         echo "• Vault data: Not found"
     fi
-    
+
     if [ $components_found -eq 0 ]; then
         print_error "PyVault is not installed or already removed"
         exit 0
     fi
-    
+
     echo -e "\nFound $components_found PyVault component(s)"
 }
 
 # Function to stop running PyVault processes
 stop_pyvault() {
     print_info "Stopping any running PyVault processes..."
-    
+
     if pgrep -f "pyvault" > /dev/null 2>&1; then
         print_warning "Found running PyVault processes. Stopping them..."
         pkill -f "pyvault" 2>/dev/null || true
         sleep 1
-        
+
         # Force kill if still running
         if pgrep -f "pyvault" > /dev/null 2>&1; then
             print_warning "Force stopping PyVault processes..."
             pkill -9 -f "pyvault" 2>/dev/null || true
         fi
-        
+
         print_success "PyVault processes stopped"
     else
         print_info "No running PyVault processes found"
@@ -121,9 +121,9 @@ backup_vault_data() {
         echo "1) Yes, create backup in ~/Downloads/pyvault_backup_$(date +%Y%m%d_%H%M%S)/"
         echo "2) No, I have my own backup"
         echo "3) Cancel uninstallation"
-        
+
         read -p "Enter choice (1-3): " backup_choice
-        
+
         case $backup_choice in
             1)
                 local backup_dir="$HOME/Downloads/pyvault_backup_$(date +%Y%m%d_%H%M%S)"
@@ -149,7 +149,7 @@ backup_vault_data() {
 # Function to remove application files
 remove_application() {
     print_info "Removing PyVault application files..."
-    
+
     if [ -d "$PYVAULT_APP_DIR" ]; then
         local app_size=$(du -sh "$PYVAULT_APP_DIR" 2>/dev/null | cut -f1)
         rm -rf "$PYVAULT_APP_DIR"
@@ -162,7 +162,7 @@ remove_application() {
 # Function to remove launcher
 remove_launcher() {
     print_info "Removing PyVault launcher..."
-    
+
     if [ -f "$PYVAULT_BIN" ]; then
         rm -f "$PYVAULT_BIN"
         print_success "Removed launcher script"
@@ -174,14 +174,14 @@ remove_launcher() {
 # Function to remove desktop integration
 remove_desktop_entry() {
     print_info "Removing desktop integration..."
-    
+
     if [ -f "$DESKTOP_FILE" ]; then
         rm -f "$DESKTOP_FILE"
         print_success "Removed desktop entry"
     else
         print_info "Desktop entry not found (already removed)"
     fi
-    
+
     # Update desktop database if available
     if command -v update-desktop-database > /dev/null 2>&1; then
         update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
@@ -203,9 +203,9 @@ remove_vault_data() {
         echo
         echo "1) YES - Delete vault data (PERMANENT)"
         echo "2) NO - Keep vault data (you can reinstall PyVault later)"
-        
+
         read -p "Enter choice (1-2): " data_choice
-        
+
         case $data_choice in
             1)
                 print_critical "Are you absolutely sure? Type 'DELETE' to confirm:"
@@ -233,13 +233,13 @@ remove_vault_data() {
 # Function to clean up any leftover files
 cleanup_leftovers() {
     print_info "Cleaning up any leftover files..."
-    
+
     # Check for old installations
     local old_locations=(
         "$HOME/.pyvault"
         "$HOME/Applications/PyVault"
     )
-    
+
     local found_old=false
     for location in "${old_locations[@]}"; do
         if [ -d "$location" ]; then
@@ -252,7 +252,7 @@ cleanup_leftovers() {
             found_old=true
         fi
     done
-    
+
     if [ "$found_old" = false ]; then
         print_info "No leftover files found"
     fi
@@ -263,13 +263,13 @@ show_final_status() {
     echo -e "\n${MAGENTA}================================${NC}"
     echo -e "${MAGENTA}    Uninstallation Summary      ${NC}"
     echo -e "${MAGENTA}================================${NC}"
-    
+
     local status_color
     local status_icon
-    
+
     # Check what remains
     echo -e "\n${BLUE}Component Status:${NC}"
-    
+
     if [ -f "$PYVAULT_BIN" ]; then
         status_color="$YELLOW"
         status_icon="⚠️ "
@@ -278,7 +278,7 @@ show_final_status() {
         status_icon="✅"
     fi
     echo -e "• Launcher: ${status_color}${status_icon} $([ -f "$PYVAULT_BIN" ] && echo "Still present" || echo "Removed")${NC}"
-    
+
     if [ -d "$PYVAULT_APP_DIR" ]; then
         status_color="$YELLOW"
         status_icon="⚠️ "
@@ -287,7 +287,7 @@ show_final_status() {
         status_icon="✅"
     fi
     echo -e "• Application: ${status_color}${status_icon} $([ -d "$PYVAULT_APP_DIR" ] && echo "Still present" || echo "Removed")${NC}"
-    
+
     if [ -f "$DESKTOP_FILE" ]; then
         status_color="$YELLOW"
         status_icon="⚠️ "
@@ -296,7 +296,7 @@ show_final_status() {
         status_icon="✅"
     fi
     echo -e "• Desktop entry: ${status_color}${status_icon} $([ -f "$DESKTOP_FILE" ] && echo "Still present" || echo "Removed")${NC}"
-    
+
     if [ -d "$CONFIG_DIR" ]; then
         status_color="$BLUE"
         status_icon="💾"
@@ -306,9 +306,9 @@ show_final_status() {
         status_icon="🗑️ "
         echo -e "• Vault data: ${status_color}${status_icon} Deleted${NC}"
     fi
-    
+
     echo -e "\n${GREEN}PyVault uninstallation completed!${NC}"
-    
+
     if [ -d "$CONFIG_DIR" ]; then
         echo -e "\n${BLUE}Note: Your vault data is preserved.${NC}"
         echo -e "${BLUE}To reinstall: Download PyVault and run ./install.sh${NC}"
@@ -318,19 +318,19 @@ show_final_status() {
 # Main uninstallation function
 main() {
     print_header
-    
+
     check_installation
     stop_pyvault
     backup_vault_data
-    
+
     echo -e "\n${BLUE}Starting uninstallation...${NC}"
-    
+
     remove_launcher
     remove_desktop_entry
     remove_application
     cleanup_leftovers
     remove_vault_data
-    
+
     show_final_status
 }
 
@@ -359,14 +359,14 @@ fi
 if [[ "$1" == "--force" ]]; then
     print_header
     print_warning "Running in force mode (automated)"
-    
+
     check_installation
     stop_pyvault
     remove_launcher
-    remove_desktop_entry  
+    remove_desktop_entry
     remove_application
     cleanup_leftovers
-    
+
     print_success "PyVault application removed (vault data preserved)"
     print_info "Vault data preserved at: $CONFIG_DIR"
     exit 0

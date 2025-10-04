@@ -46,13 +46,13 @@ create_directories() {
 
     mkdir -p "$CONFIG_DIR"
     mkdir -p "$PYVAULT_APP_DIR"
-    mkdir -p "$BIN_DIR" 
+    mkdir -p "$BIN_DIR"
     mkdir -p "$DESKTOP_DIR"
     mkdir -p "$ICON_DIR"
-    
+
     # Secure config directory permissions (vault data)
     chmod 700 "$CONFIG_DIR"
-    
+
     print_success "Directories created successfully"
 }
 
