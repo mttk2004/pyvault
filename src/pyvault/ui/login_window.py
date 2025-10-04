@@ -15,66 +15,120 @@ class LoginWindow(QWidget):
         super().__init__()
         self.vault_exists = vault_exists
         self.setWindowTitle("PyVault - Secure Password Manager")
-        self.setFixedSize(480, 520)
+        self.setFixedSize(450, 550)
         self.setObjectName("LoginWindow")
-        
-        # Set window flags for better appearance
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
-        # Main container with rounded corners
-        self.container = QFrame(self)
-        self.container.setGeometry(10, 10, 460, 500)
+        # Simple window without transparency
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+
+        # Main layout with clean white background
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
+
+        # Container with white background
+        self.container = QWidget()
         self.container.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(
-                    x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #667eea,
-                    stop:1 #764ba2
-                );
-                border-radius: 16px;
+            QWidget {
+                background-color: white;
+                border-radius: 12px;
             }
         """)
 
         self.layout = QVBoxLayout(self.container)
-        self.layout.setContentsMargins(40, 40, 40, 40)
-        self.layout.setSpacing(16)
+        self.layout.setContentsMargins(50, 50, 50, 40)
+        self.layout.setSpacing(0)
 
+        self.main_layout.addWidget(self.container)
         self._setup_ui()
 
     def _setup_ui(self):
         """Sets up the UI elements based on whether a vault exists."""
-        # Logo/Icon area
-        logo_label = QLabel("🔐")
+        # Close button - positioned absolutely at top right
+        close_button = QPushButton("Close", self)
+        close_button.setGeometry(350, 10, 90, 36)
+        close_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        close_button.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: 1px solid rgba(134, 134, 139, 0.3);
+                border-radius: 18px;
+                color: #86868b;
+                font-size: 13px;
+                font-weight: 500;
+                padding: 2px 6px;
+            }
+            QPushButton:hover {
+                background-color: rgba(213, 39, 75, 0.1);
+                border-color: rgba(213, 39, 75, 0.3);
+                color: #d1274b;
+            }
+        """)
+        close_button.clicked.connect(self.close)
+        close_button.raise_()  # Bring to front
+
+        # Logo - minimal icon
+        logo_label = QLabel("🔒")
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo_label.setStyleSheet("font-size: 64px; padding: 20px 0px;")
+        logo_label.setStyleSheet("font-size: 48px; padding: 10px;")
         self.layout.addWidget(logo_label)
-        
+
+        self.layout.addSpacing(10)
+
         # Title
-        self.title_label = QLabel()
-        self.title_label.setObjectName("TitleLabel")
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.layout.addWidget(self.title_label)
-        
+        title_label = QLabel("PyVault")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet("""
+            font-size: 28px;
+            font-weight: 600;
+            color: #1d1d1f;
+        """)
+        self.layout.addWidget(title_label)
+
+        self.layout.addSpacing(8)
+
         # Subtitle
         self.subtitle_label = QLabel()
-        self.subtitle_label.setObjectName("SubtitleLabel")
         self.subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.subtitle_label.setWordWrap(True)
+        self.subtitle_label.setStyleSheet("""
+            color: #86868b;
+            font-size: 14px;
+        """)
         self.layout.addWidget(self.subtitle_label)
 
-        # Spacer
-        self.layout.addSpacing(10)
+        self.layout.addSpacing(40)
 
         # Password input
         self.password_label = QLabel("Master Password")
-        self.password_label.setObjectName("PasswordLabel")
+        self.password_label.setStyleSheet("""
+            color: #1d1d1f;
+            font-size: 13px;
+            font-weight: 500;
+            padding-bottom: 8px;
+        """)
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.password_input.setPlaceholderText("Enter your master password")
+        self.password_input.setPlaceholderText("Enter password")
+        self.password_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #f5f5f7;
+                border: 1px solid #e5e5e7;
+                border-radius: 8px;
+                padding: 12px 14px;
+                font-size: 14px;
+                color: #1d1d1f;
+            }
+            QLineEdit:focus {
+                background-color: white;
+                border-color: #007aff;
+            }
+        """)
         self.password_input.returnPressed.connect(self.handle_action)
         self.layout.addWidget(self.password_label)
         self.layout.addWidget(self.password_input)
+
+        self.layout.addSpacing(20)
 
         if self.vault_exists:
             self._setup_unlock_mode()
@@ -83,10 +137,18 @@ class LoginWindow(QWidget):
 
         # Error label
         self.error_label = QLabel("")
-        self.error_label.setObjectName("ErrorLabel")
         self.error_label.setWordWrap(True)
-        self.error_label.hide()  # Hidden by default
+        self.error_label.setStyleSheet("""
+            color: #d1274b;
+            background-color: #ffeef1;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 13px;
+        """)
+        self.error_label.hide()
         self.layout.addWidget(self.error_label)
+
+        self.layout.addSpacing(10)
 
         # Spacer
         self.layout.addStretch()
@@ -95,61 +157,74 @@ class LoginWindow(QWidget):
         self.action_button = QPushButton()
         self.action_button.clicked.connect(self.handle_action)
         self.action_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.layout.addWidget(self.action_button)
-
-        # Set button text after creating it
-        if self.vault_exists:
-            self.action_button.setText("🔓 Unlock Vault")
-        else:
-            self.action_button.setText("✨ Create Vault")
-            
-        # Close button
-        close_btn_layout = QHBoxLayout()
-        close_btn_layout.addStretch()
-        close_button = QPushButton("×")
-        close_button.setFixedSize(32, 32)
-        close_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        close_button.setStyleSheet("""
+        self.action_button.setStyleSheet("""
             QPushButton {
-                background-color: rgba(255, 255, 255, 0.2);
-                border-radius: 16px;
+                background-color: #007aff;
+                border: none;
+                border-radius: 8px;
+                padding: 14px;
                 color: white;
-                font-size: 24px;
-                font-weight: bold;
+                font-size: 15px;
+                font-weight: 600;
             }
             QPushButton:hover {
-                background-color: rgba(255, 255, 255, 0.3);
+                background-color: #0051d5;
             }
         """)
-        close_button.clicked.connect(self.close)
-        close_btn_layout.addWidget(close_button)
-        self.layout.insertLayout(0, close_btn_layout)
+        self.layout.addWidget(self.action_button)
+
+        # Set button text
+        if self.vault_exists:
+            self.action_button.setText("Unlock Vault")
+        else:
+            self.action_button.setText("Create Vault")
 
     def _setup_unlock_mode(self):
         """UI for unlocking an existing vault."""
-        self.title_label.setText("Welcome Back!")
-        self.subtitle_label.setText("Enter your master password to unlock your vault")
+        self.subtitle_label.setText("Enter your password to unlock")
 
     def _setup_create_mode(self):
         """UI for creating a new vault."""
-        self.title_label.setText("Create Your Vault")
-        self.subtitle_label.setText("Set a strong master password to protect your credentials")
-        
+        self.subtitle_label.setText("Create a secure vault for your passwords")
+
         self.confirm_password_label = QLabel("Confirm Password")
-        self.confirm_password_label.setObjectName("PasswordLabel")
+        self.confirm_password_label.setStyleSheet("""
+            color: #1d1d1f;
+            font-size: 13px;
+            font-weight: 500;
+            padding-bottom: 8px;
+        """)
         self.confirm_password_input = QLineEdit()
         self.confirm_password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.confirm_password_input.setPlaceholderText("Re-enter your password")
+        self.confirm_password_input.setPlaceholderText("Confirm password")
+        self.confirm_password_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #f5f5f7;
+                border: 1px solid #e5e5e7;
+                border-radius: 8px;
+                padding: 12px 14px;
+                font-size: 14px;
+                color: #1d1d1f;
+            }
+            QLineEdit:focus {
+                background-color: white;
+                border-color: #007aff;
+            }
+        """)
         self.confirm_password_input.returnPressed.connect(self.handle_action)
-        
-        # Insert after password input (at indices 7 and 8)
-        self.layout.insertWidget(7, self.confirm_password_label)
-        self.layout.insertWidget(8, self.confirm_password_input)
-        
-        # Add password strength indicator
+
+        self.layout.addWidget(self.confirm_password_label)
+        self.layout.addWidget(self.confirm_password_input)
+
+        self.layout.addSpacing(12)
+
+        # Password strength
         self.strength_label = QLabel()
-        self.strength_label.setStyleSheet("color: rgba(255, 255, 255, 0.8); font-size: 12px;")
-        self.layout.insertWidget(7, self.strength_label)
+        self.strength_label.setStyleSheet("""
+            color: #86868b;
+            font-size: 12px;
+        """)
+        self.layout.addWidget(self.strength_label)
         self.password_input.textChanged.connect(self._update_password_strength)
 
     @Slot()
@@ -180,7 +255,7 @@ class LoginWindow(QWidget):
         if len(password) == 0:
             self.strength_label.setText("")
             return
-            
+
         strength = 0
         if len(password) >= 8:
             strength += 1
@@ -194,20 +269,20 @@ class LoginWindow(QWidget):
             strength += 1
         if any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
             strength += 1
-            
+
         if strength <= 2:
-            self.strength_label.setText("Password strength: ● Weak")
-            self.strength_label.setStyleSheet("color: #ff6b6b; font-size: 12px;")
+            self.strength_label.setText("Weak")
+            self.strength_label.setStyleSheet("color: #d1274b; font-size: 12px;")
         elif strength <= 4:
-            self.strength_label.setText("Password strength: ●● Medium")
-            self.strength_label.setStyleSheet("color: #ffd93d; font-size: 12px;")
+            self.strength_label.setText("Medium")
+            self.strength_label.setStyleSheet("color: #f5a623; font-size: 12px;")
         else:
-            self.strength_label.setText("Password strength: ●●● Strong")
-            self.strength_label.setStyleSheet("color: #6bcf7f; font-size: 12px;")
+            self.strength_label.setText("Strong")
+            self.strength_label.setStyleSheet("color: #30d158; font-size: 12px;")
 
     def show_error(self, message: str):
         """Displays an error message in the UI."""
-        self.error_label.setText(f"⚠️ {message}")
+        self.error_label.setText(message)
         self.error_label.show()
 
     def clear_error(self):

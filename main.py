@@ -15,14 +15,14 @@ VAULT_FILE = "vault.dat"
 class PyVaultApp(QApplication):
     def __init__(self, argv):
         super().__init__(argv)
-        
+
         # Set application-wide font
         font = QFont("Segoe UI", 10)
         self.setFont(font)
-        
+
         # Apply stylesheet
         self.setStyleSheet(MAIN_STYLESHEET)
-        
+
         self.vault_exists = os.path.exists(VAULT_FILE)
 
         self.login_window = LoginWindow(self.vault_exists)
@@ -57,7 +57,7 @@ class PyVaultApp(QApplication):
         self.login_window.close_on_success()
 
         self.main_window = MainWindow()
-        
+
         # Demo data for UI testing
         demo_data = [
             {"service": "Google", "username": "user@gmail.com", "password": "secret123", "url": "https://google.com"},
