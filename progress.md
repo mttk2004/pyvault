@@ -4,11 +4,11 @@
 
 ## Giai đoạn 1: Nền tảng
 
-- [ ] **Bước 1: Thiết lập môi trường**
-    - [ ] Cài đặt Python 3.
-    - [ ] Tạo môi trường ảo (virtual environment).
-    - [ ] Cài đặt thư viện `PySide6`.
-    - [ ] Cài đặt thư viện `cryptography`.
+- [x] **Bước 1: Thiết lập môi trường**
+    - [x] Cài đặt Python 3.
+    - [x] Tạo môi trường ảo (virtual environment).
+    - [x] Cài đặt thư viện `PySide6`.
+    - [x] Cài đặt thư viện `cryptography`.
 
 ## Giai đoạn 2: Xây dựng Lõi
 
