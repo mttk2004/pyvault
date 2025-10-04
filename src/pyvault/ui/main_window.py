@@ -5,10 +5,14 @@ from PySide6.QtWidgets import (
     QHeaderView, QAbstractItemView, QLineEdit, QToolBar,
     QStatusBar, QMessageBox, QMenu
 )
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt, Slot, Signal
 from PySide6.QtGui import QAction, QKeySequence
 
+from .entry_dialog import EntryDialog
+
 class MainWindow(QMainWindow):
+    data_changed = Signal()
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("PyVault - Your Personal Vault")
@@ -292,40 +296,92 @@ class MainWindow(QMainWindow):
         menu.addSeparator()
 
         copy_user_action = menu.addAction("Copy Username")
+        copy_user_action.triggered.connect(self._copy_username)
+
         copy_pass_action = menu.addAction("Copy Password")
+        copy_pass_action.triggered.connect(self._copy_password)
+
         copy_url_action = menu.addAction("Copy URL")
+        copy_url_action.triggered.connect(self._copy_url)
 
         menu.exec(self.table_widget.viewport().mapToGlobal(position))
 
     @Slot()
     def _add_entry(self):
         """Opens dialog to add a new entry."""
-        # Will be implemented in Step 5
-        QMessageBox.information(self, "Add Entry", "This feature will be available in Step 5!")
+        dialog = EntryDialog(self)
+        dialog.entry_saved.connect(self._save_new_entry)
+        dialog.exec()
 
     @Slot()
     def _edit_entry(self):
         """Opens dialog to edit selected entry."""
-        if not self.table_widget.selectedItems():
+        selected_row = self.table_widget.currentRow()
+        if selected_row < 0:
             QMessageBox.warning(self, "No Selection", "Please select an entry to edit.")
             return
-        # Will be implemented in Step 5
-        QMessageBox.information(self, "Edit Entry", "This feature will be available in Step 5!")
+
+        entry_data = self.vault_data[selected_row]
+
+        dialog = EntryDialog(self, entry_data=entry_data)
+        dialog.entry_saved.connect(lambda updated_entry: self._save_edited_entry(selected_row, updated_entry))
+        dialog.exec()
 
     @Slot()
     def _delete_entry(self):
         """Deletes the selected entry."""
-        if not self.table_widget.selectedItems():
+        selected_row = self.table_widget.currentRow()
+        if selected_row < 0:
             QMessageBox.warning(self, "No Selection", "Please select an entry to delete.")
             return
-        # Will be implemented in Step 5
+
+        entry = self.vault_data[selected_row]
         reply = QMessageBox.question(
             self, "Confirm Delete",
-            "Are you sure you want to delete this entry?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            f"Are you sure you want to delete the entry for <b>{entry.get('service', '')}</b>?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
         )
         if reply == QMessageBox.StandardButton.Yes:
-            QMessageBox.information(self, "Delete Entry", "This feature will be available in Step 5!")
+            del self.vault_data[selected_row]
+            self.populate_table(self.vault_data)
+            self.data_changed.emit()
+
+    @Slot()
+    def _save_new_entry(self, entry: dict):
+        self.vault_data.append(entry)
+        self.populate_table(self.vault_data)
+        self.data_changed.emit()
+
+    @Slot()
+    def _save_edited_entry(self, row: int, updated_entry: dict):
+        self.vault_data[row] = updated_entry
+        self.populate_table(self.vault_data)
+        self.data_changed.emit()
+
+    @Slot()
+    def _copy_username(self):
+        selected_row = self.table_widget.currentRow()
+        if selected_row < 0: return
+        username = self.vault_data[selected_row].get("username", "")
+        QApplication.clipboard().setText(username)
+        self.statusbar.showMessage("Username copied to clipboard!", 3000)
+
+    @Slot()
+    def _copy_password(self):
+        selected_row = self.table_widget.currentRow()
+        if selected_row < 0: return
+        password = self.vault_data[selected_row].get("password", "")
+        QApplication.clipboard().setText(password)
+        self.statusbar.showMessage("Password copied to clipboard!", 3000)
+
+    @Slot()
+    def _copy_url(self):
+        selected_row = self.table_widget.currentRow()
+        if selected_row < 0: return
+        url = self.vault_data[selected_row].get("url", "")
+        QApplication.clipboard().setText(url)
+        self.statusbar.showMessage("URL copied to clipboard!", 3000)
 
     @Slot()
     def _filter_table(self, text):
@@ -362,17 +418,17 @@ class MainWindow(QMainWindow):
         Each item in the list is a dictionary with 'service', 'username', 'password', 'url'.
         """
         self.vault_data = data
+        self.table_widget.setRowCount(0) # Clear table before populating
         self.table_widget.setRowCount(len(data))
 
         for row, item in enumerate(data):
-            # Service
+            # Store original index in a hidden way
             service_item = QTableWidgetItem(item.get("service", ""))
-            service_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            service_item.setData(Qt.ItemDataRole.UserRole, row)
             self.table_widget.setItem(row, 0, service_item)
 
             # Username
             username_item = QTableWidgetItem(item.get("username", ""))
-            username_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
             self.table_widget.setItem(row, 1, username_item)
 
             # Password (hidden for security)
@@ -382,11 +438,14 @@ class MainWindow(QMainWindow):
 
             # URL
             url_item = QTableWidgetItem(item.get("url", ""))
-            url_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
             self.table_widget.setItem(row, 3, url_item)
 
         # Update status bar
         self.statusbar.showMessage(f"Ready | {len(data)} entries")
+
+    def get_all_data(self) -> list[dict]:
+        """Returns the current state of the vault data."""
+        return self.vault_data
 
 # Example usage for testing the UI component directly
 if __name__ == '__main__':

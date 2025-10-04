@@ -10,9 +10,9 @@ KEY_SIZE = 32  # AES-256
 ITERATIONS = 480000  # Recommended by OWASP as of 2021
 AES_NONCE_SIZE = 12 # 96 bits is recommended for AES-GCM
 
-def derive_key(password: str, salt: bytes) -> bytes:
+def derive_key(password: bytes, salt: bytes) -> bytes:
     """
-    Derives a key from a password and salt using PBKDF2-HMAC-SHA256.
+    Derives a key from a password and salt using PBKDF2.
     """
     if not password:
         raise ValueError("Password cannot be empty.")
@@ -26,7 +26,14 @@ def derive_key(password: str, salt: bytes) -> bytes:
         iterations=ITERATIONS,
         backend=default_backend()
     )
-    return kdf.derive(password.encode('utf-8'))
+    # The password must be bytes. The verification is for development,
+    # to ensure the key derivation is consistent.
+    derived_key = kdf.derive(password)
+    return derived_key
+
+def generate_salt() -> bytes:
+    """Generates a new random salt for key derivation."""
+    return os.urandom(16)
 
 def encrypt(data: bytes, key: bytes) -> tuple[bytes, bytes]:
     """
