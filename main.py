@@ -1,18 +1,28 @@
 import sys
 import os
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QFont
 
 # Add src to the Python path to allow absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 from pyvault.ui.login_window import LoginWindow
 from pyvault.ui.main_window import MainWindow
+from pyvault.ui.styles import MAIN_STYLESHEET
 
 VAULT_FILE = "vault.dat"
 
 class PyVaultApp(QApplication):
     def __init__(self, argv):
         super().__init__(argv)
+        
+        # Set application-wide font
+        font = QFont("Segoe UI", 10)
+        self.setFont(font)
+        
+        # Apply stylesheet
+        self.setStyleSheet(MAIN_STYLESHEET)
+        
         self.vault_exists = os.path.exists(VAULT_FILE)
 
         self.login_window = LoginWindow(self.vault_exists)
@@ -47,8 +57,14 @@ class PyVaultApp(QApplication):
         self.login_window.close_on_success()
 
         self.main_window = MainWindow()
-        # In a real scenario, you would populate the table with decrypted data
-        # self.main_window.populate_table(decrypted_data)
+        
+        # Demo data for UI testing
+        demo_data = [
+            {"service": "Google", "username": "user@gmail.com", "password": "secret123", "url": "https://google.com"},
+            {"service": "GitHub", "username": "developer", "password": "github_pass", "url": "https://github.com"},
+            {"service": "Facebook", "username": "john.doe", "password": "fb_password", "url": "https://facebook.com"},
+        ]
+        self.main_window.populate_table(demo_data)
         self.main_window.show()
 
 
