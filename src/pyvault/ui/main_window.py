@@ -12,6 +12,7 @@ from .entry_dialog import EntryDialog
 
 class MainWindow(QMainWindow):
     data_changed = Signal()
+    lock_requested = Signal()
 
     def __init__(self):
         super().__init__()
@@ -44,6 +45,7 @@ class MainWindow(QMainWindow):
 
         lock_action = QAction("&Lock Vault", self)
         lock_action.setShortcut(QKeySequence("Ctrl+L"))
+        lock_action.triggered.connect(self.lock_requested)
         file_menu.addAction(lock_action)
 
         file_menu.addSeparator()
@@ -160,6 +162,7 @@ class MainWindow(QMainWindow):
 
         # Lock button
         lock_action = QAction("Lock Vault", self)
+        lock_action.triggered.connect(self.lock_requested)
         toolbar.addAction(lock_action)
 
     def _setup_central_widget(self):

@@ -45,10 +45,10 @@
     - [x] Thêm tính năng "Sao chép vào clipboard" một cách an toàn.
     - [x] Thêm chức năng tìm kiếm trong danh sách mật khẩu.
 
-- [ ] **Bước 7: Các tính năng mở rộng (Tùy chọn)**
+- [x] **Bước 7: Các tính năng mở rộng (Tùy chọn)**
     - [ ] Thêm chức năng "Tạo mật khẩu ngẫu nhiên".
     - [ ] Thêm chỉ báo độ mạnh của Mật khẩu chủ.
-    - [ ] Tự động khóa ứng dụng sau một khoảng thời gian không hoạt động.
+    - [x] Tự động khóa ứng dụng sau một khoảng thời gian không hoạt động.
 
 ## Giai đoạn 5: Đóng gói và Phát hành
 
