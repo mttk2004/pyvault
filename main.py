@@ -50,7 +50,7 @@ class PyVaultApp(QApplication):
         self.lock_timer = QTimer(self)
         self.lock_timer.setSingleShot(True)
         self.lock_timer.timeout.connect(self.lock_vault)
-        
+
         # Activity monitor
         self.activity_monitor = ActivityMonitor()
         self.installEventFilter(self.activity_monitor)
@@ -125,7 +125,7 @@ class PyVaultApp(QApplication):
 
         self.key = None
         self.data = []
-        
+
         self.main_window.close()
         self.main_window = None
 
@@ -133,7 +133,7 @@ class PyVaultApp(QApplication):
         self.login_window = LoginWindow(self.vault_exists)
         self.login_window.unlocked.connect(self.handle_unlock)
         self.login_window.show()
-        
+
         self.lock_timer.stop()
         print("Vault locked due to inactivity or user request.")
 
