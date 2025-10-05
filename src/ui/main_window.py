@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QLabel, QFrame, QGroupBox, QScrollArea
 )
 from PySide6.QtCore import Qt, Slot, Signal, QTimer, QSize
-from PySide6.QtGui import QAction, QKeySequence, QFont
+from PySide6.QtGui import QAction, QKeySequence, QFont, QColor
 
 from .entry_dialog import EntryDialog
 from .category_dialog import CategoryDialog
@@ -248,7 +248,6 @@ class MainWindow(QMainWindow):
                 border-radius: 8px;
                 padding: 12px 16px;
                 margin: 2px 0;
-                color: #495057;
                 font-size: 14px;
             }
             QListWidget::item:hover {
@@ -431,7 +430,7 @@ class MainWindow(QMainWindow):
         category_menu = menu.addMenu("Move to Category")
         categories = self.category_manager.get_all_categories()
         for category in categories:
-            category_action = category_menu.addAction(f"{category.icon} {category.name}")
+            category_action = category_menu.addAction(category.name)
             category_action.triggered.connect(lambda checked, cat_id=category.id: self._move_entry_to_category(cat_id))
 
         menu.exec(self.table_widget.viewport().mapToGlobal(position))
@@ -636,17 +635,21 @@ class MainWindow(QMainWindow):
         
         # Add "All Entries" item
         all_item = QListWidgetItem()
-        all_item.setText(f"[A] All Entries ({len(self.vault_data)})")
+        all_item.setText(f"● All Entries ({len(self.vault_data)})")
         all_item.setData(Qt.ItemDataRole.UserRole, "ALL")
+        # Style the bullet with a neutral color
+        all_item.setForeground(QColor("#6c757d"))
         self.category_list.addItem(all_item)
         
-        # Add categories
+        # Add categories with colored circles
         categories = self.category_manager.get_all_categories()
         for category in categories:
             count = entry_counts.get(category.id, 0)
             item = QListWidgetItem()
-            item.setText(f"{category.icon} {category.name} ({count})")
+            item.setText(f"● {category.name} ({count})")
             item.setData(Qt.ItemDataRole.UserRole, category.id)
+            # Set the bullet color to match category color
+            item.setForeground(QColor(category.color))
             self.category_list.addItem(item)
         
         # Select current filter
@@ -674,7 +677,7 @@ class MainWindow(QMainWindow):
             if category:
                 self.filtered_data = [entry for entry in self.vault_data 
                                     if entry.get("category", CategoryManager.UNCATEGORIZED_ID) == self.current_category_filter]
-                self.view_title.setText(f"{category.icon} {category.name}")
+                self.view_title.setText(category.name)
             else:
                 self.filtered_data = []
                 self.view_title.setText("Unknown Category")
@@ -691,7 +694,7 @@ class MainWindow(QMainWindow):
             category_id = item.get("category", CategoryManager.UNCATEGORIZED_ID)
             category = self.category_manager.get_category(category_id)
             if category:
-                category_text = f"{category.icon} {category.name}"
+                category_text = category.name
                 category_item = QTableWidgetItem(category_text)
                 
                 # Set background color
@@ -700,7 +703,7 @@ class MainWindow(QMainWindow):
                 contrast_color = CategoryManager.get_contrast_color(category.color)
                 category_item.setForeground(QColor(contrast_color))
             else:
-                category_item = QTableWidgetItem("[U] Uncategorized")
+                category_item = QTableWidgetItem("Uncategorized")
             
             category_item.setData(Qt.ItemDataRole.UserRole, self.vault_data.index(item))
             self.table_widget.setItem(row, 0, category_item)
