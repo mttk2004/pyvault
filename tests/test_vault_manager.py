@@ -6,7 +6,7 @@ import json
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from pyvault import vault_manager
+from src import vault_manager
 
 class TestVaultManager(unittest.TestCase):
 

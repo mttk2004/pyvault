@@ -13,6 +13,7 @@ from src.ui.main_window import MainWindow
 from src.ui.styles import MAIN_STYLESHEET
 from src import crypto_logic
 from src import vault_manager
+from src.category_manager import CategoryManager
 
 # Follow Linux FHS: config data in ~/.config/pyvault/
 VAULT_DIR = os.path.expanduser("~/.config/pyvault")
@@ -45,6 +46,7 @@ class PyVaultApp(QApplication):
 
         self.key = None
         self.data = []
+        self.category_manager = CategoryManager()
 
         # Ensure vault directory exists
         ensure_vault_directory()
@@ -72,8 +74,12 @@ class PyVaultApp(QApplication):
             salt = crypto_logic.generate_salt()
             self.key = crypto_logic.derive_key(password.encode(), salt)
 
-            # Encrypt empty data
-            initial_data = json.dumps([]).encode('utf-8')
+            # Create initial vault data with categories
+            initial_vault_data = {
+                "entries": [],
+                "categories": self.category_manager.to_dict()
+            }
+            initial_data = json.dumps(initial_vault_data).encode('utf-8')
             nonce, ciphertext = crypto_logic.encrypt(initial_data, self.key)
 
             # Save the new vault
@@ -92,7 +98,30 @@ class PyVaultApp(QApplication):
                     self.login_window.show_error("Sai mật khẩu hoặc dữ liệu bị hỏng.")
                     return
 
-                self.data = json.loads(decrypted_data.decode('utf-8'))
+                vault_data = json.loads(decrypted_data.decode('utf-8'))
+                
+                # Handle backward compatibility
+                if isinstance(vault_data, list):
+                    # Old format: just a list of entries
+                    self.data = vault_data
+                    # Ensure all entries have categories
+                    for entry in self.data:
+                        if "category" not in entry:
+                            entry["category"] = CategoryManager.UNCATEGORIZED_ID
+                elif isinstance(vault_data, dict) and "entries" in vault_data:
+                    # New format: dict with entries and categories
+                    self.data = vault_data.get("entries", [])
+                    
+                    # Load categories if available
+                    if "categories" in vault_data:
+                        self.category_manager.from_dict(vault_data["categories"])
+                    
+                    # Ensure all entries have valid categories
+                    self.data = self.category_manager.cleanup_entry_categories(self.data)
+                else:
+                    # Invalid format
+                    self.data = []
+                
                 self.show_main_window()
 
             except Exception as e:
@@ -100,10 +129,11 @@ class PyVaultApp(QApplication):
 
     def show_main_window(self):
         self.login_window.close_on_success()
-        self.main_window = MainWindow()
+        self.main_window = MainWindow(self.category_manager)
         self.main_window.populate_table(self.data)
         self.main_window.data_changed.connect(self.handle_data_change)
         self.main_window.lock_requested.connect(self.lock_vault)
+        self.main_window.categories_changed.connect(self.handle_data_change)
         self.main_window.show()
         self.reset_lock_timer()
 
@@ -119,7 +149,12 @@ class PyVaultApp(QApplication):
             # but for saving, we only need the current key.
             salt, _, _ = vault_manager.load_vault(VAULT_FILE)
 
-            data_to_save = json.dumps(self.main_window.get_all_data()).encode('utf-8')
+            # Save both entries and categories
+            vault_data = {
+                "entries": self.main_window.get_all_data(),
+                "categories": self.category_manager.to_dict()
+            }
+            data_to_save = json.dumps(vault_data).encode('utf-8')
             nonce, ciphertext = crypto_logic.encrypt(data_to_save, self.key)
 
             vault_manager.save_vault(VAULT_FILE, salt, nonce, ciphertext)
@@ -135,6 +170,7 @@ class PyVaultApp(QApplication):
 
         self.key = None
         self.data = []
+        self.category_manager = CategoryManager()
 
         self.main_window.close()
         self.main_window = None
