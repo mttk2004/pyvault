@@ -281,14 +281,15 @@ class EntryDialog(QDialog):
             self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
 
     def _generate_password(self):
-        """Generates a random strong password."""
-        import string
-        import secrets
-
-        # Generate a 16-character password with mixed characters
-        alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-        password = ''.join(secrets.choice(alphabet) for _ in range(16))
-
+        """Opens the advanced password generator dialog."""
+        from .password_generator_dialog import PasswordGeneratorDialog
+        
+        dialog = PasswordGeneratorDialog(self)
+        dialog.password_generated.connect(self._use_generated_password)
+        dialog.exec()
+    
+    def _use_generated_password(self, password: str):
+        """Use the password from the generator dialog."""
         self.password_input.setText(password)
         self.password_input.setEchoMode(QLineEdit.EchoMode.Normal)
         self.show_password_btn.setChecked(True)
