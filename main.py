@@ -9,7 +9,7 @@ from PySide6.QtCore import QTimer, QObject, QEvent, Signal
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 from src.ui.login_window import LoginWindow
-from src.ui.main_window import MainWindow
+from src.ui.tabbed_main_window import TabbedMainWindow
 from src.ui.styles import MAIN_STYLESHEET
 from src import crypto_logic
 from src import vault_manager
@@ -129,11 +129,10 @@ class PyVaultApp(QApplication):
 
     def show_main_window(self):
         self.login_window.close_on_success()
-        self.main_window = MainWindow(self.category_manager)
-        self.main_window.populate_table(self.data)
+        self.main_window = TabbedMainWindow(self.category_manager)
+        self.main_window.set_vault_data(self.data)
         self.main_window.data_changed.connect(self.handle_data_change)
         self.main_window.lock_requested.connect(self.lock_vault)
-        self.main_window.categories_changed.connect(self.handle_data_change)
         self.main_window.show()
         self.reset_lock_timer()
 
@@ -151,7 +150,7 @@ class PyVaultApp(QApplication):
 
             # Save both entries and categories
             vault_data = {
-                "entries": self.main_window.get_all_data(),
+                "entries": self.main_window.get_vault_data(),
                 "categories": self.category_manager.to_dict()
             }
             data_to_save = json.dumps(vault_data).encode('utf-8')
