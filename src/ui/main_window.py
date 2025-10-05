@@ -11,6 +11,7 @@ from PySide6.QtGui import QAction, QKeySequence, QFont
 
 from .entry_dialog import EntryDialog
 from .category_dialog import CategoryDialog
+from .toast_notification import show_success_toast, show_error_toast, show_warning_toast, show_info_toast
 from ..category_manager import CategoryManager, Category
 
 class MainWindow(QMainWindow):
@@ -447,7 +448,7 @@ class MainWindow(QMainWindow):
         """Opens dialog to edit selected entry."""
         selected_row = self.table_widget.currentRow()
         if selected_row < 0:
-            QMessageBox.warning(self, "No Selection", "Please select an entry to edit.")
+            show_warning_toast("Please select an entry to edit.", parent=self)
             return
 
         # Get the actual entry from vault_data
@@ -470,7 +471,7 @@ class MainWindow(QMainWindow):
         """Deletes the selected entry."""
         selected_row = self.table_widget.currentRow()
         if selected_row < 0:
-            QMessageBox.warning(self, "No Selection", "Please select an entry to delete.")
+            show_warning_toast("Please select an entry to delete.", parent=self)
             return
 
         # Get the actual entry from vault_data first for the confirmation dialog
@@ -490,9 +491,11 @@ class MainWindow(QMainWindow):
             QMessageBox.StandardButton.No
         )
         if reply == QMessageBox.StandardButton.Yes:
+            service_name = entry.get('service', 'entry')
             del self.vault_data[original_row]
             self._refresh_ui()
             self.data_changed.emit()
+            show_success_toast(f"Deleted entry for {service_name}", parent=self)
 
     @Slot()
     def _save_new_entry(self, entry: dict):
@@ -503,6 +506,7 @@ class MainWindow(QMainWindow):
         self.vault_data.append(entry)
         self._refresh_ui()
         self.data_changed.emit()
+        show_success_toast(f"Added new entry for {entry.get('service', 'service')}", parent=self)
 
     @Slot()
     def _save_edited_entry(self, row: int, updated_entry: dict):
@@ -516,6 +520,7 @@ class MainWindow(QMainWindow):
         
         self._refresh_ui()
         self.data_changed.emit()
+        show_success_toast(f"Updated entry for {updated_entry.get('service', 'service')}", parent=self)
 
     @Slot()
     def _copy_username(self):
@@ -556,9 +561,10 @@ class MainWindow(QMainWindow):
     def _copy_to_clipboard(self, text: str, item_name: str):
         """Copies text to clipboard and starts a timer to clear it."""
         if not text:
+            show_warning_toast(f"No {item_name.lower()} to copy", parent=self)
             return
         QApplication.clipboard().setText(text)
-        self.statusbar.showMessage(f"{item_name} copied to clipboard. Will be cleared in 30 seconds.", 5000)
+        show_success_toast(f"{item_name} copied to clipboard", duration=2000, parent=self)
         self.clipboard_timer.start(30000) # 30 seconds
 
     @Slot()
@@ -576,7 +582,7 @@ class MainWindow(QMainWindow):
 
         if is_sensitive:
             QApplication.clipboard().clear()
-            self.statusbar.showMessage("Clipboard cleared for security.", 3000)
+            show_info_toast("Clipboard cleared for security", parent=self)
 
     @Slot()
     def _filter_table(self, text):
@@ -758,6 +764,7 @@ class MainWindow(QMainWindow):
         """Move selected entry to a different category."""
         selected_row = self.table_widget.currentRow()
         if selected_row < 0:
+            show_warning_toast("Please select an entry to move", parent=self)
             return
         
         # Get the actual entry from vault_data
@@ -765,9 +772,14 @@ class MainWindow(QMainWindow):
         if category_item:
             original_row = category_item.data(Qt.ItemDataRole.UserRole)
             if original_row is not None and 0 <= original_row < len(self.vault_data):
+                entry = self.vault_data[original_row]
                 self.vault_data[original_row]["category"] = category_id
+                category = self.category_manager.get_category(category_id)
+                category_name = category.name if category else "Uncategorized"
+                service_name = entry.get('service', 'entry')
                 self._refresh_ui()
                 self.data_changed.emit()
+                show_success_toast(f"Moved {service_name} to {category_name}", parent=self)
 
     def get_all_data(self) -> list[dict]:
         """Returns the current state of the vault data."""

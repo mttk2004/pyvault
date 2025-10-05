@@ -8,9 +8,11 @@ from PySide6.QtCore import QTimer, QObject, QEvent, Signal
 # Add src to the Python path to allow absolute imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
-from src.ui.login_window import LoginWindow
-from src.ui.tabbed_main_window import TabbedMainWindow
-from src.ui.styles import MAIN_STYLESHEET
+# Import enhanced UI components
+from src.ui.login_window_enhanced import EnhancedLoginWindow
+from src.ui.main_window import MainWindow
+from src.ui.theme_manager import theme_manager
+from src.ui.toast_notification import show_success_toast, show_info_toast
 from src import crypto_logic
 from src import vault_manager
 from src.category_manager import CategoryManager
@@ -37,12 +39,13 @@ class PyVaultApp(QApplication):
     def __init__(self, argv):
         super().__init__(argv)
 
-        # Set application-wide font
-        font = QFont("Segoe UI", 10)
-        self.setFont(font)
+        # Set application properties for modern UI
+        self.setApplicationName("PyVault")
+        self.setApplicationVersion("2.0.0")
+        self.setOrganizationName("PyVault")
 
-        # Apply stylesheet
-        self.setStyleSheet(MAIN_STYLESHEET)
+        # Initialize theme manager
+        theme_manager.initialize()
 
         self.key = None
         self.data = []
@@ -52,7 +55,8 @@ class PyVaultApp(QApplication):
         ensure_vault_directory()
         self.vault_exists = os.path.exists(VAULT_FILE)
 
-        self.login_window = LoginWindow(self.vault_exists)
+        # Use enhanced login window
+        self.login_window = EnhancedLoginWindow(self.vault_exists)
         self.main_window = None # Created after successful login
 
         self.login_window.unlocked.connect(self.handle_unlock)
@@ -95,7 +99,7 @@ class PyVaultApp(QApplication):
                 decrypted_data = crypto_logic.decrypt(nonce, ciphertext, self.key)
 
                 if decrypted_data is None:
-                    self.login_window.show_error("Sai mật khẩu hoặc dữ liệu bị hỏng.")
+                    self.login_window.show_unlock_feedback(False, "Incorrect password or corrupted data.")
                     return
 
                 vault_data = json.loads(decrypted_data.decode('utf-8'))
@@ -125,16 +129,22 @@ class PyVaultApp(QApplication):
                 self.show_main_window()
 
             except Exception as e:
-                self.login_window.show_error(f"Lỗi không xác định: {e}")
+                self.login_window.show_unlock_feedback(False, f"Error: {e}")
 
     def show_main_window(self):
-        self.login_window.close_on_success()
-        self.main_window = TabbedMainWindow(self.category_manager)
-        self.main_window.set_vault_data(self.data)
+        # Show successful unlock feedback
+        self.login_window.show_unlock_feedback(True)
+        
+        # Create enhanced main window
+        self.main_window = MainWindow(self.category_manager)
+        self.main_window.populate_table(self.data)
         self.main_window.data_changed.connect(self.handle_data_change)
         self.main_window.lock_requested.connect(self.lock_vault)
         self.main_window.show()
         self.reset_lock_timer()
+        
+        # Show welcome toast after main window is shown
+        QTimer.singleShot(1000, lambda: show_success_toast("Welcome back to PyVault!", parent=self.main_window))
 
     def handle_data_change(self):
         """Encrypts and saves the current data to the vault file."""
@@ -150,7 +160,7 @@ class PyVaultApp(QApplication):
 
             # Save both entries and categories
             vault_data = {
-                "entries": self.main_window.get_vault_data(),
+                "entries": self.main_window.get_all_data(),
                 "categories": self.category_manager.to_dict()
             }
             data_to_save = json.dumps(vault_data).encode('utf-8')
@@ -174,8 +184,8 @@ class PyVaultApp(QApplication):
         self.main_window.close()
         self.main_window = None
 
-        # Re-initialize and show the login window
-        self.login_window = LoginWindow(self.vault_exists)
+        # Re-initialize and show the enhanced login window
+        self.login_window = EnhancedLoginWindow(self.vault_exists)
         self.login_window.unlocked.connect(self.handle_unlock)
         self.login_window.show()
 
