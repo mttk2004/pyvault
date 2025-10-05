@@ -636,7 +636,7 @@ class MainWindow(QMainWindow):
         
         # Add "All Entries" item
         all_item = QListWidgetItem()
-        all_item.setText(f"📂 All Entries ({len(self.vault_data)})")
+        all_item.setText(f"[A] All Entries ({len(self.vault_data)})")
         all_item.setData(Qt.ItemDataRole.UserRole, "ALL")
         self.category_list.addItem(all_item)
         
@@ -700,7 +700,7 @@ class MainWindow(QMainWindow):
                 contrast_color = CategoryManager.get_contrast_color(category.color)
                 category_item.setForeground(QColor(contrast_color))
             else:
-                category_item = QTableWidgetItem("📂 Uncategorized")
+                category_item = QTableWidgetItem("[U] Uncategorized")
             
             category_item.setData(Qt.ItemDataRole.UserRole, self.vault_data.index(item))
             self.table_widget.setItem(row, 0, category_item)
