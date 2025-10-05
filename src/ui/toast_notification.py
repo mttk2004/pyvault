@@ -107,44 +107,17 @@ class Toast(QFrame):
         self.close_btn.leaveEvent = on_close_leave
     
     def _setup_animations(self):
-        """Setup toast animations"""
-        # Opacity effect
-        self.opacity_effect = QGraphicsOpacityEffect()
-        self.setGraphicsEffect(self.opacity_effect)
-        
+        """Setup toast animations - simplified to avoid QPainter conflicts"""
         # Slide in animation
         self.slide_in_animation = QPropertyAnimation(self, b"pos")
         self.slide_in_animation.setDuration(300)
         self.slide_in_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
         
-        # Fade in animation
-        self.fade_in_animation = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.fade_in_animation.setDuration(250)
-        self.fade_in_animation.setStartValue(0.0)
-        self.fade_in_animation.setEndValue(1.0)
-        self.fade_in_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-        
         # Slide out animation
         self.slide_out_animation = QPropertyAnimation(self, b"pos")
         self.slide_out_animation.setDuration(250)
         self.slide_out_animation.setEasingCurve(QEasingCurve.Type.InCubic)
-        
-        # Fade out animation
-        self.fade_out_animation = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.fade_out_animation.setDuration(200)
-        self.fade_out_animation.setStartValue(1.0)
-        self.fade_out_animation.setEndValue(0.0)
-        self.fade_out_animation.setEasingCurve(QEasingCurve.Type.InCubic)
-        
-        # Animation groups
-        self.show_group = QParallelAnimationGroup()
-        self.show_group.addAnimation(self.slide_in_animation)
-        self.show_group.addAnimation(self.fade_in_animation)
-        
-        self.hide_group = QParallelAnimationGroup()
-        self.hide_group.addAnimation(self.slide_out_animation)
-        self.hide_group.addAnimation(self.fade_out_animation)
-        self.hide_group.finished.connect(self._on_hide_finished)
+        self.slide_out_animation.finished.connect(self._on_hide_finished)
     
     def _apply_theme(self):
         """Apply theme-based styling"""
@@ -185,14 +158,13 @@ class Toast(QFrame):
         """)
     
     def show_animated(self, start_pos: QPoint, end_pos: QPoint):
-        """Show toast with slide and fade animation"""
+        """Show toast with slide animation"""
         self.move(start_pos)
         self.show()
         
         self.slide_in_animation.setStartValue(start_pos)
         self.slide_in_animation.setEndValue(end_pos)
-        
-        self.show_group.start()
+        self.slide_in_animation.start()
     
     def close_with_animation(self):
         """Close toast with animation"""
@@ -202,8 +174,7 @@ class Toast(QFrame):
         
         self.slide_out_animation.setStartValue(current_pos)
         self.slide_out_animation.setEndValue(end_pos)
-        
-        self.hide_group.start()
+        self.slide_out_animation.start()
     
     def _on_hide_finished(self):
         """Handle hide animation finished"""

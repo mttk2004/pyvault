@@ -21,29 +21,17 @@ from .toast_notification import show_error_toast, show_warning_toast, show_succe
 
 
 class AnimatedLineEdit(QLineEdit):
-    """Custom line edit with smooth focus animations"""
+    """Custom line edit with focus styling"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._setup_animations()
-        
-    def _setup_animations(self):
-        """Setup focus animations"""
-        self.focus_in_animation = QPropertyAnimation(self, b"geometry")
-        self.focus_in_animation.setDuration(Transitions.duration_fast)
-        self.focus_in_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-        
-        self.focus_out_animation = QPropertyAnimation(self, b"geometry") 
-        self.focus_out_animation.setDuration(Transitions.duration_fast)
-        self.focus_out_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
     
     def focusInEvent(self, event):
-        """Animate on focus in"""
+        """Handle focus in with CSS styling"""
         super().focusInEvent(event)
-        # Subtle scale animation could be added here
         
     def focusOutEvent(self, event):
-        """Animate on focus out"""  
+        """Handle focus out with CSS styling"""  
         super().focusOutEvent(event)
 
 
@@ -53,29 +41,21 @@ class GradientButton(QPushButton):
     def __init__(self, text="", parent=None):
         super().__init__(text, parent)
         self.is_primary = True
-        self._setup_animations()
-        
-    def _setup_animations(self):
-        """Setup hover animations"""
-        self.hover_effect = QGraphicsOpacityEffect()
-        self.setGraphicsEffect(self.hover_effect)
-        
-        self.hover_animation = QPropertyAnimation(self.hover_effect, b"opacity")
-        self.hover_animation.setDuration(200)
+        self.is_hovered = False
         
     def enterEvent(self, event):
-        """Animate on hover"""
+        """Handle hover enter - use CSS styling instead of animations"""
         super().enterEvent(event)
-        self.hover_animation.setStartValue(1.0)
-        self.hover_animation.setEndValue(0.9)
-        self.hover_animation.start()
+        self.is_hovered = True
+        self.style().unpolish(self)
+        self.style().polish(self)
         
     def leaveEvent(self, event):
-        """Animate on leave"""
+        """Handle hover leave - use CSS styling instead of animations"""
         super().leaveEvent(event)
-        self.hover_animation.setStartValue(0.9)
-        self.hover_animation.setEndValue(1.0)
-        self.hover_animation.start()
+        self.is_hovered = False
+        self.style().unpolish(self)
+        self.style().polish(self)
 
 
 class PasswordStrengthBar(QProgressBar):
@@ -301,25 +281,13 @@ class EnhancedLoginWindow(QWidget):
         layout.addWidget(security_note)
         
     def _setup_animations(self):
-        """Setup window animations"""
-        # Entrance animation
-        self.opacity_effect = QGraphicsOpacityEffect()
-        self.setGraphicsEffect(self.opacity_effect)
-        
-        self.entrance_fade = QPropertyAnimation(self.opacity_effect, b"opacity")
+        """Setup window animations - simplified to avoid QPainter conflicts"""
+        # Simple fade animation without graphics effects
+        self.entrance_fade = QPropertyAnimation(self, b"windowOpacity")
         self.entrance_fade.setDuration(Transitions.duration_slow)
         self.entrance_fade.setStartValue(0.0)
         self.entrance_fade.setEndValue(1.0)
         self.entrance_fade.setEasingCurve(QEasingCurve.Type.OutCubic)
-        
-        # Scale animation for container
-        self.container_scale = QPropertyAnimation(self.container, b"geometry")
-        self.container_scale.setDuration(Transitions.duration_slow)
-        self.container_scale.setEasingCurve(QEasingCurve.Type.OutCubic)
-        
-        # Combined entrance animation
-        self.entrance_group = QParallelAnimationGroup()
-        self.entrance_group.addAnimation(self.entrance_fade)
         
     def _apply_theme(self):
         """Apply current theme styling"""
@@ -447,21 +415,11 @@ class EnhancedLoginWindow(QWidget):
         
     def _show_entrance_animation(self):
         """Show entrance animation"""
-        # Start container slightly smaller
-        current_rect = self.container.geometry()
-        smaller_rect = QRect(
-            current_rect.x() + 10,
-            current_rect.y() + 10, 
-            current_rect.width() - 20,
-            current_rect.height() - 20
-        )
-        self.container.setGeometry(smaller_rect)
+        # Start with transparent window
+        self.setWindowOpacity(0.0)
         
-        # Animate to full size
-        self.container_scale.setStartValue(smaller_rect)
-        self.container_scale.setEndValue(current_rect)
-        
-        self.entrance_group.start()
+        # Animate fade in
+        self.entrance_fade.start()
         
         # Focus on password input after animation
         QTimer.singleShot(Transitions.duration_slow + 100, self.password_input.setFocus)
@@ -567,40 +525,19 @@ class EnhancedLoginWindow(QWidget):
             self.unlocked.emit(password)
             
     def show_error(self, message: str):
-        """Show error message with animation"""
+        """Show error message with simple fade"""
         self.error_label.setText(message)
         
         if not self.error_frame.isVisible():
             self.error_frame.show()
             
-            # Animate error appearance
-            effect = QGraphicsOpacityEffect()
-            self.error_frame.setGraphicsEffect(effect)
-            
-            animation = QPropertyAnimation(effect, b"opacity")
-            animation.setDuration(Transitions.duration_fast)
-            animation.setStartValue(0.0)
-            animation.setEndValue(1.0)
-            animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-            animation.start()
-            
         # Auto-clear after delay
         QTimer.singleShot(5000, self.clear_error)
         
     def clear_error(self):
-        """Clear error message with animation"""
+        """Clear error message"""
         if self.error_frame.isVisible():
-            effect = self.error_frame.graphicsEffect()
-            if effect:
-                animation = QPropertyAnimation(effect, b"opacity")
-                animation.setDuration(Transitions.duration_fast)
-                animation.setStartValue(1.0) 
-                animation.setEndValue(0.0)
-                animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-                animation.finished.connect(self.error_frame.hide)
-                animation.start()
-            else:
-                self.error_frame.hide()
+            self.error_frame.hide()
                 
     def on_theme_changed(self):
         """Handle theme changes"""
