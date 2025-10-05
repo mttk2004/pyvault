@@ -10,7 +10,7 @@ from PySide6.QtGui import QColor
 class Category:
     """Represents a password entry category with metadata."""
     
-    def __init__(self, id: str = None, name: str = "", color: str = "#6c757d", icon: str = "📁"):
+    def __init__(self, id: str = None, name: str = "", color: str = "#6c757d", icon: str = "[F]"):
         self.id = id or str(uuid.uuid4())
         self.name = name
         self.color = color  # Hex color string
@@ -33,7 +33,7 @@ class Category:
             id=data.get("id"),
             name=data.get("name", ""),
             color=data.get("color", "#6c757d"),
-            icon=data.get("icon", "📁")
+            icon=data.get("icon", "[F]")
         )
     
     def __str__(self):
@@ -61,25 +61,25 @@ class CategoryManager:
             id=self.UNCATEGORIZED_ID,
             name="Uncategorized",
             color="#6c757d",
-            icon="📂"
+            icon="[U]"
         )
         self.categories[self.UNCATEGORIZED_ID] = uncategorized
         
         # Add some common default categories
         defaults = [
-            ("Social Media", "#e91e63", "📱"),
-            ("Banking", "#4caf50", "🏦"),
-            ("Work", "#2196f3", "💼"),
-            ("Entertainment", "#ff9800", "🎬"),
-            ("Shopping", "#9c27b0", "🛒"),
-            ("Email", "#f44336", "📧")
+            ("Social Media", "#e91e63", "[S]"),
+            ("Banking", "#4caf50", "[B]"),
+            ("Work", "#2196f3", "[W]"),
+            ("Entertainment", "#ff9800", "[E]"),
+            ("Shopping", "#9c27b0", "[P]"),
+            ("Email", "#f44336", "[M]")
         ]
         
         for name, color, icon in defaults:
             category = Category(name=name, color=color, icon=icon)
             self.categories[category.id] = category
     
-    def create_category(self, name: str, color: str = "#6c757d", icon: str = "📁") -> Category:
+    def create_category(self, name: str, color: str = "#6c757d", icon: str = "[F]") -> Category:
         """Create a new category."""
         if not name.strip():
             raise ValueError("Category name cannot be empty")
@@ -196,7 +196,7 @@ class CategoryManager:
                 id=self.UNCATEGORIZED_ID,
                 name="Uncategorized",
                 color="#6c757d",
-                icon="📂"
+                icon="[U]"
             )
             self.categories[self.UNCATEGORIZED_ID] = uncategorized
     
