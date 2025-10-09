@@ -48,10 +48,86 @@ DARK_PALETTE = ColorPalette(
     background_secondary="#1c1c1c",
     background_tertiary="#232323",
 
-    # Surfaces
-    surface_primary="#1c1c1c",
-    surface_secondary="#33373a",
-    surface_tertiary="#4f5458",
+# Light Theme Palette
+LIGHT_PALETTE = ColorPalette(
+    # Primary (Blue)
+    primary_50="#e7f1ff",
+    primary_100="#cde2ff",
+    primary_200="#a0c9ff",
+    primary_300="#73afff",
+    primary_400="#4695ff",
+    primary_500="#197bff",
+    primary_600="#0062e6",
+    primary_700="#0052cc",
+    primary_800="#0041a3",
+    primary_900="#00317a",
+    
+    # Gray
+    gray_50="#f8f9fa",
+    gray_100="#e9ecef",
+    gray_200="#dee2e6",
+    gray_300="#ced4da",
+    gray_400="#adb5bd",
+    gray_500="#6c757d",
+    gray_600="#495057",
+    gray_700="#343a40",
+    gray_800="#212529",
+    gray_900="#1d2129",
+    
+    # Status
+    success="#28a745",
+    warning="#ffc107",
+    error="#dc3545",
+    info="#17a2b8",
+    
+    # Background
+    background="#f8f9fa",
+    surface="#ffffff",
+    surface_hover="#e9ecef",
+    surface_active="#dee2e6",
+    
+    # Text
+    text_primary="#212529",
+    text_secondary="#495057",
+    text_tertiary="#6c757d",
+    text_inverse="#ffffff",
+    
+    # Border
+    border="#ced4da",
+    border_hover="#adb5bd",
+    border_focus="#197bff",
+    
+    # Input colors
+    input_background="#ffffff",
+    input_border="#ced4da",
+    
+    # Status light colors
+    success_light="#d4edda",
+    warning_light="#fff3cd",
+    error_light="#f8d7da",
+    info_light="#d1ecf1",
+    
+    # Status dark colors
+    success_dark="#059669",
+    warning_dark="#d97706",
+    error_dark="#dc2626",
+    info_dark="#0284c7",
+    
+    # Status border colors
+    error_border="#fecaca",
+    
+    # Primary variant
+    primary="#3b82f6",
+    primary_light="#dbeafe",
+    primary_dark="#1d4ed8",
+    
+    # Surface variants
+    surface_secondary="#f9fafb",
+    
+    # Effects
+    shadow="rgba(0, 0, 0, 0.1)",
+    overlay="rgba(0, 0, 0, 0.6)"
+)
 
     # Text
     text_primary="#ffffff",

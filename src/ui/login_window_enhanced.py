@@ -7,8 +7,75 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
     QLineEdit, QPushButton, QFrame, QSpacerItem, QSizePolicy, QProgressBar
 )
-from PySide6.QtCore import Signal, Slot, Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import (
+    Signal, Slot, Qt, QTimer, QPropertyAnimation, QEasingCurve, 
+    QSequentialAnimationGroup, QParallelAnimationGroup, QRect
+)
+from PySide6.QtGui import QFont, QPainter, QColor, QLinearGradient
+
+from .design_system import tokens, Shadows, Transitions
+from .theme_manager import theme_manager
+from .toast_notification import show_error_toast, show_warning_toast, show_success_toast
+
+
+class AnimatedLineEdit(QLineEdit):
+    """Custom line edit with focus styling and shake animation."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.animation = QPropertyAnimation(self, b"geometry")
+        self.animation.setDuration(500)
+        self.animation.setEasingCurve(QEasingCurve.Type.OutBounce)
+
+    def shake(self):
+        """Shake the line edit to indicate an error."""
+        start_rect = self.geometry()
+        self.animation.setStartValue(start_rect)
+
+        anim_group = QSequentialAnimationGroup()
+        for i in range(4):
+            rect = QRect(start_rect)
+            rect.moveLeft(start_rect.left() + (10 if i % 2 == 0 else -10))
+            anim = QPropertyAnimation(self, b"geometry")
+            anim.setDuration(50)
+            anim.setStartValue(self.geometry())
+            anim.setEndValue(rect)
+            anim_group.addAnimation(anim)
+
+        anim_group.addAnimation(QPropertyAnimation(self, b"geometry"))
+        anim_group.setCurrentTime(0)
+        anim_group.start()
+
+    def focusInEvent(self, event):
+        """Handle focus in with CSS styling"""
+        super().focusInEvent(event)
+        
+    def focusOutEvent(self, event):
+        """Handle focus out with CSS styling"""  
+        super().focusOutEvent(event)
+
+
+class GradientButton(QPushButton):
+    """Custom button with gradient background and hover effects"""
+    
+    def __init__(self, text="", parent=None):
+        super().__init__(text, parent)
+        self.is_primary = True
+        self.is_hovered = False
+        
+    def enterEvent(self, event):
+        """Handle hover enter - use CSS styling instead of animations"""
+        super().enterEvent(event)
+        self.is_hovered = True
+        self.style().unpolish(self)
+        self.style().polish(self)
+        
+    def leaveEvent(self, event):
+        """Handle hover leave - use CSS styling instead of animations"""
+        super().leaveEvent(event)
+        self.is_hovered = False
+        self.style().unpolish(self)
+        self.style().polish(self)
 
 from .design_system import tokens, get_global_stylesheet
 from .toast_notification import show_error_toast
@@ -164,7 +231,8 @@ class EnhancedLoginWindow(QWidget):
         password = self.password_input.text()
         
         if not password:
-            show_error_toast("Password cannot be empty.", parent=self)
+            self.show_error("Password cannot be empty")
+            self.password_input.shake()
             return
             
         if self.vault_exists:
@@ -172,19 +240,48 @@ class EnhancedLoginWindow(QWidget):
         else:
             confirm_password = self.confirm_password_input.text()
             if password != confirm_password:
-                show_error_toast("Passwords do not match.", parent=self)
+                self.show_error("Passwords do not match")
+                self.confirm_password_input.shake()
                 return
             if len(password) < 8:
-                show_error_toast("Password must be at least 8 characters.", parent=self)
+                self.show_error("Password must be at least 8 characters long")
+                self.password_input.shake()
                 return
             self.unlocked.emit(password)
             
+    def show_error(self, message: str):
+        """Show error message using a toast notification."""
+        show_error_toast(message, parent=self)
+        
+    def clear_error(self):
+        """Clear error message"""
+        if self.error_frame.isVisible():
+            self.error_frame.hide()
+                
+    def on_theme_changed(self):
+        """Handle theme changes"""
+        self._apply_theme()
+        
     def show_unlock_feedback(self, success: bool, message: str = ""):
-        """Show feedback for unlock attempts."""
-        if not success:
-            error_message = message or "Incorrect password."
-            show_error_toast(error_message, parent=self)
-
+        """Show feedback for unlock attempts"""
+        if success:
+            show_success_toast("Vault unlocked successfully!", parent=self)
+            # Close window after short delay
+            QTimer.singleShot(800, self.close)
+        else:
+            if message:
+                self.show_error(message)
+            else:
+                self.show_error("Incorrect password. Please try again.")
+            self.password_input.shake()
+                
+    def keyPressEvent(self, event):
+        """Handle key press events"""
+        if event.key() == Qt.Key.Key_Escape:
+            self.close()
+        else:
+            super().keyPressEvent(event)
+            
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.drag_start_position = event.globalPosition().toPoint()
