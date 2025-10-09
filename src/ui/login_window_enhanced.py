@@ -106,26 +106,26 @@ class EnhancedLoginWindow(QWidget):
                 color: {Colors.PRIMARY_TEXT};
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }}
-            
+
             QFrame#container {{
                 background-color: {Colors.SECONDARY_BG};
                 border: 1px solid {Colors.BORDER};
                 border-radius: 12px;
             }}
-            
+
             QLabel#title {{
                 font-size: 24px;
                 font-weight: 600;
                 color: {Colors.PRIMARY_TEXT};
                 margin-bottom: 5px;
             }}
-            
+
             QLabel#subtitle {{
                 font-size: 14px;
                 color: {Colors.SECONDARY_TEXT};
                 margin-bottom: 20px;
             }}
-            
+
             QLineEdit {{
                 background-color: {Colors.SURFACE_BG};
                 color: {Colors.PRIMARY_TEXT};
@@ -135,15 +135,15 @@ class EnhancedLoginWindow(QWidget):
                 font-size: 14px;
                 min-height: 20px;
             }}
-            
+
             QLineEdit:focus {{
                 border-color: {Colors.BLUE_ACCENT};
             }}
-            
+
             QLineEdit::placeholder {{
                 color: {Colors.MUTED_TEXT};
             }}
-            
+
             QPushButton {{
                 background-color: {Colors.BLUE_ACCENT};
                 color: white;
@@ -154,17 +154,17 @@ class EnhancedLoginWindow(QWidget):
                 font-weight: 500;
                 min-height: 20px;
             }}
-            
+
             QPushButton:hover {{
                 background-color: {Colors.BLUE_HOVER};
             }}
-            
+
             QPushButton#secondary {{
                 background-color: transparent;
                 color: {Colors.SECONDARY_TEXT};
                 border: 1px solid {Colors.BORDER};
             }}
-            
+
             QPushButton#secondary:hover {{
                 background-color: {Colors.SURFACE_BG};
             }}
@@ -187,7 +187,7 @@ class EnhancedLoginWindow(QWidget):
             if not hasattr(self, 'confirm_password_input'):
                 self.unlocked.emit(password)
                 return
-                
+
             confirm_password = self.confirm_password_input.text()
             if password != confirm_password:
                 show_error_toast("Passwords do not match", self)

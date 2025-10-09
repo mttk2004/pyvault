@@ -102,7 +102,7 @@ class PyVaultApp(QApplication):
                     return
 
                 vault_data = json.loads(decrypted_data.decode('utf-8'))
-                
+
                 # Handle backward compatibility
                 if isinstance(vault_data, list):
                     # Old format: just a list of entries
@@ -114,17 +114,17 @@ class PyVaultApp(QApplication):
                 elif isinstance(vault_data, dict) and "entries" in vault_data:
                     # New format: dict with entries and categories
                     self.data = vault_data.get("entries", [])
-                    
+
                     # Load categories if available
                     if "categories" in vault_data:
                         self.category_manager.from_dict(vault_data["categories"])
-                    
+
                     # Ensure all entries have valid categories
                     self.data = self.category_manager.cleanup_entry_categories(self.data)
                 else:
                     # Invalid format
                     self.data = []
-                
+
                 self.show_main_window()
 
             except Exception as e:
@@ -138,15 +138,15 @@ class PyVaultApp(QApplication):
             self.main_window.data_changed.connect(self.handle_data_change)
             self.main_window.lock_requested.connect(self.lock_vault)
             self.main_window.show()
-            
+
             self.reset_lock_timer()
-            
+
             # Show successful unlock feedback AFTER main window is ready
             self.login_window.show_unlock_feedback(True)
-            
+
             # Show welcome toast after main window is shown
             QTimer.singleShot(1000, lambda: show_success_toast("Welcome back to PyVault!", parent=self.main_window))
-            
+
         except Exception as e:
             print(f"Error creating main window: {e}")
             import traceback
