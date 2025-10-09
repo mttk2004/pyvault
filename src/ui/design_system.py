@@ -4,6 +4,14 @@ A complete redesign focusing on a clean, high-contrast dark theme.
 """
 
 from dataclasses import dataclass
+from enum import Enum
+
+
+class Theme(Enum):
+    """Available application themes."""
+    LIGHT = "light"
+    DARK = "dark"
+    SYSTEM = "system"
 
 # Main theme color palette (Dark Theme)
 @dataclass
@@ -40,6 +48,10 @@ class ColorPalette:
     warning: str
     error: str
     info: str
+    
+    # Legacy compatibility (aliases)
+    surface: str = None  # Will be set to surface_primary
+    border: str = None   # Will be set to border_primary
 
 # V2 Dark Theme Palette
 DARK_PALETTE = ColorPalette(
@@ -48,86 +60,10 @@ DARK_PALETTE = ColorPalette(
     background_secondary="#1c1c1c",
     background_tertiary="#232323",
 
-# Light Theme Palette
-LIGHT_PALETTE = ColorPalette(
-    # Primary (Blue)
-    primary_50="#e7f1ff",
-    primary_100="#cde2ff",
-    primary_200="#a0c9ff",
-    primary_300="#73afff",
-    primary_400="#4695ff",
-    primary_500="#197bff",
-    primary_600="#0062e6",
-    primary_700="#0052cc",
-    primary_800="#0041a3",
-    primary_900="#00317a",
-    
-    # Gray
-    gray_50="#f8f9fa",
-    gray_100="#e9ecef",
-    gray_200="#dee2e6",
-    gray_300="#ced4da",
-    gray_400="#adb5bd",
-    gray_500="#6c757d",
-    gray_600="#495057",
-    gray_700="#343a40",
-    gray_800="#212529",
-    gray_900="#1d2129",
-    
-    # Status
-    success="#28a745",
-    warning="#ffc107",
-    error="#dc3545",
-    info="#17a2b8",
-    
-    # Background
-    background="#f8f9fa",
-    surface="#ffffff",
-    surface_hover="#e9ecef",
-    surface_active="#dee2e6",
-    
-    # Text
-    text_primary="#212529",
-    text_secondary="#495057",
-    text_tertiary="#6c757d",
-    text_inverse="#ffffff",
-    
-    # Border
-    border="#ced4da",
-    border_hover="#adb5bd",
-    border_focus="#197bff",
-    
-    # Input colors
-    input_background="#ffffff",
-    input_border="#ced4da",
-    
-    # Status light colors
-    success_light="#d4edda",
-    warning_light="#fff3cd",
-    error_light="#f8d7da",
-    info_light="#d1ecf1",
-    
-    # Status dark colors
-    success_dark="#059669",
-    warning_dark="#d97706",
-    error_dark="#dc2626",
-    info_dark="#0284c7",
-    
-    # Status border colors
-    error_border="#fecaca",
-    
-    # Primary variant
-    primary="#3b82f6",
-    primary_light="#dbeafe",
-    primary_dark="#1d4ed8",
-    
-    # Surface variants
-    surface_secondary="#f9fafb",
-    
-    # Effects
-    shadow="rgba(0, 0, 0, 0.1)",
-    overlay="rgba(0, 0, 0, 0.6)"
-)
+    # Surfaces
+    surface_primary="#1a1a1a",
+    surface_secondary="#242424",
+    surface_tertiary="#2d2d2d",
 
     # Text
     text_primary="#ffffff",
@@ -149,14 +85,57 @@ LIGHT_PALETTE = ColorPalette(
     success="#28a745",
     warning="#ffc107",
     error="#dc3545",
-    info="#17a2b8"
+    info="#17a2b8",
+    
+    # Legacy compatibility
+    surface="#1a1a1a",  # Same as surface_primary
+    border="#33373a"    # Same as border_primary
+)
+
+# Light Theme Palette
+LIGHT_PALETTE = ColorPalette(
+    # Backgrounds
+    background_primary="#ffffff",
+    background_secondary="#f8f9fa",
+    background_tertiary="#e9ecef",
+
+    # Surfaces
+    surface_primary="#ffffff",
+    surface_secondary="#f8f9fa",
+    surface_tertiary="#e9ecef",
+
+    # Text
+    text_primary="#212529",
+    text_secondary="#495057",
+    text_tertiary="#6c757d",
+    text_on_primary="#ffffff",
+
+    # Borders
+    border_primary="#ced4da",
+    border_secondary="#dee2e6",
+    border_focus="#197bff",
+
+    # Action Colors
+    primary="#197bff",
+    primary_hover="#0062e6",
+    primary_disabled="#adb5bd",
+
+    # Status Colors
+    success="#28a745",
+    warning="#ffc107",
+    error="#dc3545",
+    info="#17a2b8",
+    
+    # Legacy compatibility
+    surface="#ffffff",   # Same as surface_primary
+    border="#ced4da"     # Same as border_primary
 )
 
 @dataclass
 class Typography:
     """Typography scale."""
     font_family_sans: str = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
-    
+
     # Font sizes (in pt for Qt)
     text_xs: int = 8
     text_sm: int = 9
@@ -164,7 +143,7 @@ class Typography:
     text_lg: int = 12
     text_xl: int = 14
     text_2xl: int = 18
-    
+
     # Font weights
     font_normal: int = 400
     font_medium: int = 500
@@ -190,12 +169,25 @@ class BorderRadius:
 
 class DesignTokens:
     """Central design tokens for the new UI."""
-    
+
     def __init__(self):
         self.colors = DARK_PALETTE
         self.typography = Typography()
         self.spacing = Spacing()
         self.border_radius = BorderRadius()
+        self.shadows = {}  # Placeholder for shadows
+
+    def switch_theme(self, theme: Theme):
+        """Switch between themes."""
+        if theme == Theme.DARK:
+            self.colors = DARK_PALETTE
+        elif theme == Theme.LIGHT:
+            self.colors = LIGHT_PALETTE
+        # System theme would detect system preference (not implemented)
+
+    def get_color(self, color_name: str) -> str:
+        """Get color value by name."""
+        return getattr(self.colors, color_name, "#ffffff")
 
 # Global design tokens instance
 tokens = DesignTokens()
