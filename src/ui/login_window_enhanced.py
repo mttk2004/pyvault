@@ -1,128 +1,20 @@
 """
-PyVault Login Window - V2 (Bitwarden Inspired)
-A complete rewrite for a clean, dark-themed login experience.
+PyVault Login Window - Bitwarden Inspired
+Clean, dark-themed login experience.
 """
 
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QFrame, QSpacerItem, QSizePolicy, QProgressBar
+    QLineEdit, QPushButton, QFrame, QSpacerItem, QSizePolicy
 )
-from PySide6.QtCore import (
-    Signal, Slot, Qt, QTimer, QPropertyAnimation, QEasingCurve,
-    QSequentialAnimationGroup, QParallelAnimationGroup, QRect
-)
-from PySide6.QtGui import QFont, QPainter, QColor, QLinearGradient, QPixmap
+from PySide6.QtCore import Signal, Slot, Qt, QTimer
 
-from .design_system import tokens
-from .theme_manager import theme_manager
-from .toast_notification import show_error_toast, show_warning_toast, show_success_toast
+from .design_system import Colors, get_global_stylesheet
+from .toast_notification import show_error_toast, show_success_toast
 
-
-class AnimatedLineEdit(QLineEdit):
-    """Custom line edit with focus styling and shake animation."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.animation = QPropertyAnimation(self, b"geometry")
-        self.animation.setDuration(500)
-        self.animation.setEasingCurve(QEasingCurve.Type.OutBounce)
-
-    def shake(self):
-        """Shake the line edit to indicate an error."""
-        start_rect = self.geometry()
-        self.animation.setStartValue(start_rect)
-
-        anim_group = QSequentialAnimationGroup()
-        for i in range(4):
-            rect = QRect(start_rect)
-            rect.moveLeft(start_rect.left() + (10 if i % 2 == 0 else -10))
-            anim = QPropertyAnimation(self, b"geometry")
-            anim.setDuration(50)
-            anim.setStartValue(self.geometry())
-            anim.setEndValue(rect)
-            anim_group.addAnimation(anim)
-
-        anim_group.addAnimation(QPropertyAnimation(self, b"geometry"))
-        anim_group.setCurrentTime(0)
-        anim_group.start()
-
-    def focusInEvent(self, event):
-        """Handle focus in with CSS styling"""
-        super().focusInEvent(event)
-
-    def focusOutEvent(self, event):
-        """Handle focus out with CSS styling"""
-        super().focusOutEvent(event)
-
-
-class GradientButton(QPushButton):
-    """Custom button with gradient background and hover effects"""
-
-    def __init__(self, text="", parent=None):
-        super().__init__(text, parent)
-        self.is_primary = True
-        self.is_hovered = False
-
-    def enterEvent(self, event):
-        """Handle hover enter - use CSS styling instead of animations"""
-        super().enterEvent(event)
-        self.is_hovered = True
-        self.style().unpolish(self)
-        self.style().polish(self)
-
-    def leaveEvent(self, event):
-        """Handle hover leave - use CSS styling instead of animations"""
-        super().leaveEvent(event)
-        self.is_hovered = False
-        self.style().unpolish(self)
-        self.style().polish(self)
-
-from .design_system import tokens, get_global_stylesheet
-from .toast_notification import show_error_toast
-
-class PasswordStrengthBar(QProgressBar):
-    """Custom password strength indicator."""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setTextVisible(False)
-        self.setFixedHeight(4)
-        self.setStyleSheet(f"""
-            QProgressBar {{
-                border: none;
-                background-color: {tokens.colors.surface_tertiary};
-                border-radius: 2px;
-            }}
-            QProgressBar::chunk {{
-                background-color: {tokens.colors.error};
-                border-radius: 2px;
-            }}
-        """)
-
-    def set_strength(self, strength: int):
-        self.setValue(strength)
-        self.setMaximum(5)
-
-        if strength <= 2:
-            color = tokens.colors.error
-        elif strength <= 4:
-            color = tokens.colors.warning
-        else:
-            color = tokens.colors.success
-
-        self.setStyleSheet(f"""
-            QProgressBar {{
-                border: none;
-                background-color: {tokens.colors.surface_tertiary};
-                border-radius: 2px;
-            }}
-            QProgressBar::chunk {{
-                background-color: {color};
-                border-radius: 2px;
-            }}
-        """)
 
 class EnhancedLoginWindow(QWidget):
-    """A Bitwarden-inspired login window with a dark, minimalist design."""
+    """Bitwarden-inspired login window"""
 
     unlocked = Signal(str)
 
@@ -131,149 +23,190 @@ class EnhancedLoginWindow(QWidget):
         self.vault_exists = vault_exists
 
         self.setWindowTitle("PyVault")
-        self.setFixedSize(380, 520 if not vault_exists else 500)
+        self.setFixedSize(400, 500 if not vault_exists else 450)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
-        self._setup_ui()
-        self.setStyleSheet(get_global_stylesheet())
+        self.setup_ui()
+        self.apply_styles()
 
-    def _setup_ui(self):
-        """Setup the minimalist UI."""
+    def setup_ui(self):
+        """Setup the login UI"""
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setContentsMargins(20, 20, 20, 20)
 
+        # Container frame
         container = QFrame()
         container.setObjectName("container")
-        container.setStyleSheet(f"""
-            QFrame#container {{
-                background-color: {tokens.colors.background_secondary};
-                border: 1px solid {tokens.colors.border_primary};
-                border-radius: {tokens.border_radius.lg}px;
-            }}
-        """)
         main_layout.addWidget(container)
 
         layout = QVBoxLayout(container)
-        layout.setContentsMargins(tokens.spacing.xl, tokens.spacing.xl, tokens.spacing.xl, tokens.spacing.xl)
-        layout.setSpacing(tokens.spacing.lg)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
 
-        logo_label = QLabel()
-        pixmap = QPixmap("src/assets/icons/lock.svg")
-        logo_label.setPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        # Logo/Icon placeholder
+        logo_label = QLabel("🔐")
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_label.setStyleSheet("font-size: 48px; margin-bottom: 10px;")
         layout.addWidget(logo_label)
 
+        # Title
         title_label = QLabel("PyVault")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet(f"font-size: {tokens.typography.text_2xl}pt; font-weight: {tokens.typography.font_bold}; color: {tokens.colors.text_primary};")
+        title_label.setObjectName("title")
         layout.addWidget(title_label)
 
-        form_layout = QVBoxLayout()
-        form_layout.setSpacing(tokens.spacing.md)
+        # Subtitle
+        subtitle = "Create your vault" if not self.vault_exists else "Enter your master password"
+        subtitle_label = QLabel(subtitle)
+        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle_label.setObjectName("subtitle")
+        layout.addWidget(subtitle_label)
 
-        self.password_input = AnimatedLineEdit()
+        # Form
+        form_layout = QVBoxLayout()
+        form_layout.setSpacing(15)
+
+        # Password input
+        self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setPlaceholderText("Master Password")
         self.password_input.returnPressed.connect(self.handle_action)
-        self.password_input.textChanged.connect(self._on_password_changed)
         form_layout.addWidget(self.password_input)
 
+        # Confirm password (only for new vaults)
         if not self.vault_exists:
-            self.confirm_password_input = AnimatedLineEdit()
+            self.confirm_password_input = QLineEdit()
             self.confirm_password_input.setEchoMode(QLineEdit.EchoMode.Password)
             self.confirm_password_input.setPlaceholderText("Confirm Master Password")
             self.confirm_password_input.returnPressed.connect(self.handle_action)
             form_layout.addWidget(self.confirm_password_input)
 
-            self.strength_bar = PasswordStrengthBar()
-            form_layout.addWidget(self.strength_bar)
-            self.strength_bar.hide()
-
         layout.addLayout(form_layout)
 
-        layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        # Spacer
+        layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
-        button_text = "Unlock" if self.vault_exists else "Create Vault"
+        # Action button
+        button_text = "Unlock Vault" if self.vault_exists else "Create Vault"
         self.action_button = QPushButton(button_text)
-        self.action_button.setObjectName("PrimaryButton")
         self.action_button.clicked.connect(self.handle_action)
         layout.addWidget(self.action_button)
 
+        # Close button
         self.close_button = QPushButton("Close")
+        self.close_button.setObjectName("secondary")
         self.close_button.clicked.connect(self.close)
         layout.addWidget(self.close_button)
 
-    @Slot()
-    def _on_password_changed(self):
-        """Handle password changes to update strength bar if needed."""
-        if not self.vault_exists:
-            self._update_password_strength()
-
-    def _update_password_strength(self):
-        """Update password strength indicator visibility and value."""
-        password = self.password_input.text()
-        if password:
-            self.strength_bar.show()
-            strength = 0
-            if len(password) >= 8: strength += 1
-            if any(c.isupper() for c in password): strength += 1
-            if any(c.islower() for c in password): strength += 1
-            if any(c.isdigit() for c in password): strength += 1
-            if any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?~`" for c in password): strength += 1
-            self.strength_bar.set_strength(strength)
-        else:
-            self.strength_bar.hide()
+    def apply_styles(self):
+        """Apply Bitwarden-inspired styles"""
+        self.setStyleSheet(f"""
+            QWidget {{
+                background-color: {Colors.PRIMARY_BG};
+                color: {Colors.PRIMARY_TEXT};
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }}
+            
+            QFrame#container {{
+                background-color: {Colors.SECONDARY_BG};
+                border: 1px solid {Colors.BORDER};
+                border-radius: 12px;
+            }}
+            
+            QLabel#title {{
+                font-size: 24px;
+                font-weight: 600;
+                color: {Colors.PRIMARY_TEXT};
+                margin-bottom: 5px;
+            }}
+            
+            QLabel#subtitle {{
+                font-size: 14px;
+                color: {Colors.SECONDARY_TEXT};
+                margin-bottom: 20px;
+            }}
+            
+            QLineEdit {{
+                background-color: {Colors.SURFACE_BG};
+                color: {Colors.PRIMARY_TEXT};
+                border: 1px solid {Colors.BORDER};
+                border-radius: 6px;
+                padding: 12px;
+                font-size: 14px;
+                min-height: 20px;
+            }}
+            
+            QLineEdit:focus {{
+                border-color: {Colors.BLUE_ACCENT};
+            }}
+            
+            QLineEdit::placeholder {{
+                color: {Colors.MUTED_TEXT};
+            }}
+            
+            QPushButton {{
+                background-color: {Colors.BLUE_ACCENT};
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 12px 24px;
+                font-size: 14px;
+                font-weight: 500;
+                min-height: 20px;
+            }}
+            
+            QPushButton:hover {{
+                background-color: {Colors.BLUE_HOVER};
+            }}
+            
+            QPushButton#secondary {{
+                background-color: transparent;
+                color: {Colors.SECONDARY_TEXT};
+                border: 1px solid {Colors.BORDER};
+            }}
+            
+            QPushButton#secondary:hover {{
+                background-color: {Colors.SURFACE_BG};
+            }}
+        """)
 
     @Slot()
     def handle_action(self):
-        """Handle the main action (unlock or create)."""
+        """Handle unlock/create action"""
         password = self.password_input.text()
 
         if not password:
-            self.show_error("Password cannot be empty")
-            self.password_input.shake()
+            show_error_toast("Password cannot be empty", self)
             return
 
         if self.vault_exists:
+            # Unlock existing vault
             self.unlocked.emit(password)
         else:
+            # Create new vault
+            if not hasattr(self, 'confirm_password_input'):
+                self.unlocked.emit(password)
+                return
+                
             confirm_password = self.confirm_password_input.text()
             if password != confirm_password:
-                self.show_error("Passwords do not match")
-                self.confirm_password_input.shake()
+                show_error_toast("Passwords do not match", self)
                 return
             if len(password) < 8:
-                self.show_error("Password must be at least 8 characters long")
-                self.password_input.shake()
+                show_error_toast("Password must be at least 8 characters", self)
                 return
             self.unlocked.emit(password)
-
-    def show_error(self, message: str):
-        """Show error message using a toast notification."""
-        show_error_toast(message, parent=self)
-
-    def clear_error(self):
-        """Clear error message"""
-        if self.error_frame.isVisible():
-            self.error_frame.hide()
-
-    def on_theme_changed(self):
-        """Handle theme changes"""
-        self._apply_theme()
 
     def show_unlock_feedback(self, success: bool, message: str = ""):
         """Show feedback for unlock attempts"""
         if success:
-            show_success_toast("Vault unlocked successfully!", parent=self)
-            # Close window after short delay
-            QTimer.singleShot(800, self.close)
+            show_success_toast("Vault unlocked successfully!", self)
+            QTimer.singleShot(500, self.close)
         else:
             if message:
-                self.show_error(message)
+                show_error_toast(message, self)
             else:
-                self.show_error("Incorrect password. Please try again.")
-            self.password_input.shake()
+                show_error_toast("Incorrect password. Please try again.", self)
 
     def keyPressEvent(self, event):
         """Handle key press events"""
@@ -283,14 +216,17 @@ class EnhancedLoginWindow(QWidget):
             super().keyPressEvent(event)
 
     def mousePressEvent(self, event):
+        """Handle mouse press for dragging"""
         if event.button() == Qt.MouseButton.LeftButton:
             self.drag_start_position = event.globalPosition().toPoint()
 
     def mouseMoveEvent(self, event):
+        """Handle mouse move for dragging"""
         if hasattr(self, 'drag_start_position') and self.drag_start_position is not None:
             delta = event.globalPosition().toPoint() - self.drag_start_position
             self.move(self.pos() + delta)
             self.drag_start_position = event.globalPosition().toPoint()
 
     def mouseReleaseEvent(self, event):
+        """Handle mouse release"""
         self.drag_start_position = None

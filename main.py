@@ -11,7 +11,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'
 # Import enhanced UI components
 from src.ui.login_window_enhanced import EnhancedLoginWindow
 from src.ui.main_window import MainWindow
-from src.ui.theme_manager import theme_manager
 from src.ui.toast_notification import show_success_toast, show_info_toast
 from src import crypto_logic
 from src import vault_manager
@@ -44,8 +43,8 @@ class PyVaultApp(QApplication):
         self.setApplicationVersion("2.0.0")
         self.setOrganizationName("PyVault")
 
-        # Initialize theme manager
-        theme_manager.initialize()
+        # Initialize theme (placeholder)
+        # theme_manager.initialize()
 
         self.key = None
         self.data = []
