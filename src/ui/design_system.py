@@ -99,61 +99,61 @@ class ColorPalette:
 # Light Theme Palette
 LIGHT_PALETTE = ColorPalette(
     # Primary (Blue)
-    primary_50="#eff6ff",
-    primary_100="#dbeafe",
-    primary_200="#bfdbfe",
-    primary_300="#93c5fd",
-    primary_400="#60a5fa",
-    primary_500="#3b82f6",
-    primary_600="#2563eb",
-    primary_700="#1d4ed8",
-    primary_800="#1e40af",
-    primary_900="#1e3a8a",
+    primary_50="#e7f1ff",
+    primary_100="#cde2ff",
+    primary_200="#a0c9ff",
+    primary_300="#73afff",
+    primary_400="#4695ff",
+    primary_500="#197bff",
+    primary_600="#0062e6",
+    primary_700="#0052cc",
+    primary_800="#0041a3",
+    primary_900="#00317a",
     
     # Gray
-    gray_50="#f9fafb",
-    gray_100="#f3f4f6",
-    gray_200="#e5e7eb",
-    gray_300="#d1d5db",
-    gray_400="#9ca3af",
-    gray_500="#6b7280",
-    gray_600="#4b5563",
-    gray_700="#374151",
-    gray_800="#1f2937",
-    gray_900="#111827",
+    gray_50="#f8f9fa",
+    gray_100="#e9ecef",
+    gray_200="#dee2e6",
+    gray_300="#ced4da",
+    gray_400="#adb5bd",
+    gray_500="#6c757d",
+    gray_600="#495057",
+    gray_700="#343a40",
+    gray_800="#212529",
+    gray_900="#1d2129",
     
     # Status
-    success="#10b981",
-    warning="#f59e0b",
-    error="#ef4444",
-    info="#06b6d4",
+    success="#28a745",
+    warning="#ffc107",
+    error="#dc3545",
+    info="#17a2b8",
     
     # Background
-    background="#ffffff",
+    background="#f8f9fa",
     surface="#ffffff",
-    surface_hover="#f9fafb",
-    surface_active="#f3f4f6",
+    surface_hover="#e9ecef",
+    surface_active="#dee2e6",
     
     # Text
-    text_primary="#1f2937",
-    text_secondary="#6b7280",
-    text_tertiary="#9ca3af",
+    text_primary="#212529",
+    text_secondary="#495057",
+    text_tertiary="#6c757d",
     text_inverse="#ffffff",
     
     # Border
-    border="#e5e7eb",
-    border_hover="#d1d5db",
-    border_focus="#3b82f6",
+    border="#ced4da",
+    border_hover="#adb5bd",
+    border_focus="#197bff",
     
     # Input colors
-    input_background="#f9fafb",
-    input_border="#e5e7eb",
+    input_background="#ffffff",
+    input_border="#ced4da",
     
     # Status light colors
-    success_light="#ecfdf5",
-    warning_light="#fffbeb", 
-    error_light="#fef2f2",
-    info_light="#f0f9ff",
+    success_light="#d4edda",
+    warning_light="#fff3cd",
+    error_light="#f8d7da",
+    info_light="#d1ecf1",
     
     # Status dark colors
     success_dark="#059669",
