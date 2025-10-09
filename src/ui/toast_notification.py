@@ -147,13 +147,12 @@ class Toast(QFrame):
             font-weight: bold;
         """)
 
-        # Main toast styling with glassmorphism effect
+        # Main toast styling
         self.setStyleSheet(f"""
             QFrame {{
                 background-color: {colors.surface_primary};
                 border: 1px solid {colors.border_primary};
                 border-radius: 12px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             }}
         """)
 

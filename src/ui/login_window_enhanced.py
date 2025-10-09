@@ -172,7 +172,7 @@ class EnhancedLoginWindow(QWidget):
         form_layout = QVBoxLayout()
         form_layout.setSpacing(tokens.spacing.md)
 
-        self.password_input = QLineEdit()
+        self.password_input = AnimatedLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setPlaceholderText("Master Password")
         self.password_input.returnPressed.connect(self.handle_action)
@@ -180,7 +180,7 @@ class EnhancedLoginWindow(QWidget):
         form_layout.addWidget(self.password_input)
 
         if not self.vault_exists:
-            self.confirm_password_input = QLineEdit()
+            self.confirm_password_input = AnimatedLineEdit()
             self.confirm_password_input.setEchoMode(QLineEdit.EchoMode.Password)
             self.confirm_password_input.setPlaceholderText("Confirm Master Password")
             self.confirm_password_input.returnPressed.connect(self.handle_action)

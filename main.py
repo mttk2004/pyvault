@@ -132,19 +132,27 @@ class PyVaultApp(QApplication):
                 self.login_window.show_unlock_feedback(False, f"Error: {e}")
 
     def show_main_window(self):
-        # Show successful unlock feedback
-        self.login_window.show_unlock_feedback(True)
-        
-        # Create enhanced main window
-        self.main_window = MainWindow(self.category_manager)
-        self.main_window.populate_table(self.data)
-        self.main_window.data_changed.connect(self.handle_data_change)
-        self.main_window.lock_requested.connect(self.lock_vault)
-        self.main_window.show()
-        self.reset_lock_timer()
-        
-        # Show welcome toast after main window is shown
-        QTimer.singleShot(1000, lambda: show_success_toast("Welcome back to PyVault!", parent=self.main_window))
+        try:
+            # Create enhanced main window
+            self.main_window = MainWindow(self.category_manager)
+            self.main_window.populate_table(self.data)
+            self.main_window.data_changed.connect(self.handle_data_change)
+            self.main_window.lock_requested.connect(self.lock_vault)
+            self.main_window.show()
+            
+            self.reset_lock_timer()
+            
+            # Show successful unlock feedback AFTER main window is ready
+            self.login_window.show_unlock_feedback(True)
+            
+            # Show welcome toast after main window is shown
+            QTimer.singleShot(1000, lambda: show_success_toast("Welcome back to PyVault!", parent=self.main_window))
+            
+        except Exception as e:
+            print(f"Error creating main window: {e}")
+            import traceback
+            traceback.print_exc()
+            self.login_window.show_unlock_feedback(False, f"Error creating main window: {e}")
 
     def handle_data_change(self):
         """Encrypts and saves the current data to the vault file."""

@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
 
         self._setup_ui()
         self.setStyleSheet(get_global_stylesheet())
-        self._update_detail_view(None) # Start with empty detail view
+        # self._update_detail_view(None) # Start with empty detail view - TODO: implement this method
 
     def _setup_ui(self):
         """Setup the main UI components."""
@@ -126,8 +126,8 @@ class MainWindow(QMainWindow):
 
         # --- Central Widget (Splitter) ---
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
-        main_layout.addWidget(self.splitter)
-        
+        self.setCentralWidget(self.splitter)
+
         # Create sidebar and main content
         self._setup_category_sidebar()
         self._setup_main_content()
@@ -142,11 +142,11 @@ class MainWindow(QMainWindow):
                 border-right: 1px solid #e0e0e0;
             }
         """)
-        
+
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(20, 20, 20, 20)
         sidebar_layout.setSpacing(20)
-        
+
         # Categories title
         title_label = QLabel("Categories")
         title_label.setStyleSheet("""
@@ -156,7 +156,7 @@ class MainWindow(QMainWindow):
             padding-bottom: 10px;
         """)
         sidebar_layout.addWidget(title_label)
-        
+
         # Category list
         self.category_list = QListWidget()
         self.category_list.setStyleSheet("""
@@ -182,18 +182,18 @@ class MainWindow(QMainWindow):
         """)
         self.category_list.itemClicked.connect(self._on_category_filter_changed)
         sidebar_layout.addWidget(self.category_list)
-        
+
         sidebar_layout.addStretch()
-        
+
         self.splitter.addWidget(sidebar)
-    
+
     def _setup_main_content(self):
         """Create the main content area."""
         content_widget = QWidget()
         self.layout = QVBoxLayout(content_widget)
         self.layout.setContentsMargins(20, 16, 20, 16)
         self.layout.setSpacing(16)
-        
+
         # Add current view title
         self.view_title = QLabel("All Entries")
         self.view_title.setStyleSheet("""
@@ -203,14 +203,14 @@ class MainWindow(QMainWindow):
             padding: 10px 0;
         """)
         self.layout.addWidget(self.view_title)
-        
+
         self._setup_entries_table()
-        
+
         self.splitter.addWidget(content_widget)
-        
+
         # Set splitter proportions
         self.splitter.setSizes([280, 800])
-    
+
     def _setup_entries_table(self):
         """Setup the entries table."""
         # Table for credentials
@@ -346,9 +346,9 @@ class MainWindow(QMainWindow):
 
         copy_url_action = menu.addAction("Copy URL")
         copy_url_action.triggered.connect(self._copy_url)
-        
+
         menu.addSeparator()
-        
+
         # Category submenu
         category_menu = menu.addMenu("Move to Category")
         categories = self.category_manager.get_all_categories()
@@ -390,7 +390,7 @@ class MainWindow(QMainWindow):
 
         entry_data = self.filtered_data[selected_row]
         original_row = self.vault_data.index(entry_data)
-        
+
         entry = self.vault_data[original_row]
         reply = QMessageBox.question(
             self, "Confirm Delete",
@@ -407,7 +407,7 @@ class MainWindow(QMainWindow):
 
         title = QLabel("Categories")
         title.setStyleSheet(f"font-size: {tokens.typography.text_lg}pt; font-weight: {tokens.typography.font_semibold};")
-        
+
         self.vault_data.append(entry)
         self._refresh_ui()
         self.data_changed.emit()
@@ -418,11 +418,11 @@ class MainWindow(QMainWindow):
         # Ensure entry has a category
         if "category" not in updated_entry:
             updated_entry["category"] = CategoryManager.UNCATEGORIZED_ID
-            
+
         # Update the entry directly
         if 0 <= row < len(self.vault_data):
             self.vault_data[row] = updated_entry
-        
+
         self._refresh_ui()
         self.data_changed.emit()
         show_success_toast(f"Updated entry for {updated_entry.get('service', 'service')}", parent=self)
@@ -431,7 +431,7 @@ class MainWindow(QMainWindow):
     def _copy_username(self):
         selected_row = self.table_view.currentIndex().row()
         if selected_row < 0: return
-        
+
         entry = self.filtered_data[selected_row]
         username = entry.get("username", "")
         self._copy_to_clipboard(username, "Username")
@@ -440,7 +440,7 @@ class MainWindow(QMainWindow):
     def _copy_password(self):
         selected_row = self.table_view.currentIndex().row()
         if selected_row < 0: return
-        
+
         entry = self.filtered_data[selected_row]
         password = entry.get("password", "")
         self._copy_to_clipboard(password, "Password")
@@ -449,7 +449,7 @@ class MainWindow(QMainWindow):
     def _copy_url(self):
         selected_row = self.table_view.currentIndex().row()
         if selected_row < 0: return
-        
+
         entry = self.filtered_data[selected_row]
         url = entry.get("url", "")
         self._copy_to_clipboard(url, "URL")
@@ -524,15 +524,15 @@ class MainWindow(QMainWindow):
     def _populate_category_sidebar(self):
         self.category_list.clear()
         counts = self.category_manager.count_entries_by_category(self.vault_data)
-        
+
         entry_counts = self.category_manager.count_entries_by_category(self.vault_data)
-        
+
         all_item = QListWidgetItem()
         all_item.setText(f"● All Entries ({len(self.vault_data)})")
         all_item.setData(Qt.ItemDataRole.UserRole, "ALL")
         all_item.setForeground(QColor("#6c757d"))
         self.category_list.addItem(all_item)
-        
+
         categories = self.category_manager.get_all_categories()
         for category in categories:
             count = entry_counts.get(category.id, 0)
@@ -541,16 +541,16 @@ class MainWindow(QMainWindow):
             item.setData(Qt.ItemDataRole.UserRole, category.id)
             item.setForeground(QColor(category.color))
             self.category_list.addItem(item)
-        
+
         self._select_category_in_sidebar(self.current_category_filter)
-    
+
     def _select_category_in_sidebar(self, category_id):
         """Select a category in the sidebar."""
         for i in range(self.category_list.count()):
             if self.category_list.item(i).data(Qt.ItemDataRole.UserRole) == self.current_category_filter:
                 self.category_list.setCurrentRow(i)
                 break
-    
+
     def _apply_current_filter(self):
         """Apply the current category filter to the table."""
         if self.current_category_filter is None:
@@ -567,14 +567,14 @@ class MainWindow(QMainWindow):
             else:
                 self.filtered_data = []
                 self.view_title.setText("Unknown Category")
-        
+
         self._populate_table_with_data(self.filtered_data)
-    
+
     def _populate_table_with_data(self, data: list[dict]):
         """Populate table with the given data."""
         self.table_model.set_data(data)
         self._update_empty_state()
-    
+
     def _update_empty_state(self):
         """Show or hide the empty state label."""
         if self.table_model.rowCount() == 0:
@@ -597,24 +597,17 @@ class MainWindow(QMainWindow):
         """Update the status bar with current info."""
         total_entries = len(self.vault_data)
         filtered_entries = len(self.filtered_data)
-        
+
         if self.current_category_filter is None:
             self.statusbar.showMessage(f"Ready | {total_entries} entries")
         else:
             category = self.category_manager.get_category(self.current_category_filter)
             category_name = category.name if category else "Unknown"
             self.statusbar.showMessage(f"Ready | {filtered_entries} entries in {category_name} | {total_entries} total")
-    
+
     @Slot()
     def _on_category_filter_changed(self, item: QListWidgetItem):
         self.current_category_filter = item.data(Qt.ItemDataRole.UserRole)
-        self._apply_current_filter()
-
-    def _apply_current_filter(self):
-        search_text = self.search_bar.text().lower()
-        
-        self.current_category_filter = None if category_id == "ALL" else category_id
-        
         self._apply_current_filter()
 
     @Slot()
@@ -631,14 +624,14 @@ class MainWindow(QMainWindow):
         """Handle changes to categories."""
         self._refresh_ui()
         self.categories_changed.emit()
-    
+
     def _move_entry_to_category(self, category_id: str):
         """Move selected entry to a different category."""
         selected_row = self.table_view.currentIndex().row()
         if selected_row < 0:
             show_warning_toast("Please select an entry to move", parent=self)
             return
-        
+
         entry_data = self.filtered_data[selected_row]
         original_row = self.vault_data.index(entry_data)
 
@@ -656,6 +649,33 @@ class MainWindow(QMainWindow):
     def get_all_data(self) -> list[dict]:
         """Returns the current state of the vault data."""
         return self.vault_data
+
+    def _manage_categories(self):
+        """Open the category management dialog."""
+        from .category_dialog import CategoryDialog
+        dialog = CategoryDialog(self.category_manager, self.vault_data, self)
+        dialog.categories_changed.connect(self._on_categories_changed)
+        dialog.exec()
+
+    def _on_categories_changed(self):
+        """Handle changes to categories."""
+        self._refresh_category_sidebar()
+        self._refresh_ui()
+        self.data_changed.emit()
+
+    def _refresh_category_sidebar(self):
+        """Refresh the category sidebar with updated categories."""
+        # Clear existing category items
+        for i in reversed(range(1, self.sidebar_layout.count())):  # Skip "All" button
+            item = self.sidebar_layout.itemAt(i)
+            if item:
+                widget = item.widget()
+                if widget:
+                    widget.deleteLater()
+                self.sidebar_layout.removeItem(item)
+
+        # Re-add updated categories
+        self._populate_category_sidebar()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
