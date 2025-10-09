@@ -21,11 +21,33 @@ from .toast_notification import show_error_toast, show_warning_toast, show_succe
 
 
 class AnimatedLineEdit(QLineEdit):
-    """Custom line edit with focus styling"""
+    """Custom line edit with focus styling and shake animation."""
     
     def __init__(self, parent=None):
         super().__init__(parent)
-    
+        self.animation = QPropertyAnimation(self, b"geometry")
+        self.animation.setDuration(500)
+        self.animation.setEasingCurve(QEasingCurve.Type.OutBounce)
+
+    def shake(self):
+        """Shake the line edit to indicate an error."""
+        start_rect = self.geometry()
+        self.animation.setStartValue(start_rect)
+
+        anim_group = QSequentialAnimationGroup()
+        for i in range(4):
+            rect = QRect(start_rect)
+            rect.moveLeft(start_rect.left() + (10 if i % 2 == 0 else -10))
+            anim = QPropertyAnimation(self, b"geometry")
+            anim.setDuration(50)
+            anim.setStartValue(self.geometry())
+            anim.setEndValue(rect)
+            anim_group.addAnimation(anim)
+
+        anim_group.addAnimation(QPropertyAnimation(self, b"geometry"))
+        anim_group.setCurrentTime(0)
+        anim_group.start()
+
     def focusInEvent(self, event):
         """Handle focus in with CSS styling"""
         super().focusInEvent(event)
@@ -498,6 +520,7 @@ class EnhancedLoginWindow(QWidget):
         # Validation
         if not password:
             self.show_error("Password cannot be empty")
+            self.password_input.shake()
             return
             
         if self.vault_exists:
@@ -513,26 +536,20 @@ class EnhancedLoginWindow(QWidget):
             
             if password != confirm_password:
                 self.show_error("Passwords do not match")
-                self.confirm_password_input.setFocus()
+                self.confirm_password_input.shake()
                 return
                 
             if len(password) < 8:
                 self.show_error("Password must be at least 8 characters long")
-                self.password_input.setFocus()
+                self.password_input.shake()
                 return
                 
             # Success - emit password
             self.unlocked.emit(password)
             
     def show_error(self, message: str):
-        """Show error message with simple fade"""
-        self.error_label.setText(message)
-        
-        if not self.error_frame.isVisible():
-            self.error_frame.show()
-            
-        # Auto-clear after delay
-        QTimer.singleShot(5000, self.clear_error)
+        """Show error message using a toast notification."""
+        show_error_toast(message, parent=self)
         
     def clear_error(self):
         """Clear error message"""
@@ -554,6 +571,7 @@ class EnhancedLoginWindow(QWidget):
                 self.show_error(message)
             else:
                 self.show_error("Incorrect password. Please try again.")
+            self.password_input.shake()
                 
     def keyPressEvent(self, event):
         """Handle key press events"""

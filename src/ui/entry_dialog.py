@@ -1,15 +1,59 @@
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QFormLayout, QTextEdit, QComboBox
+    QLineEdit, QPushButton, QFormLayout, QTextEdit, QComboBox, QProgressBar
 )
 from PySide6.QtCore import Qt, Signal
+from .design_system import tokens
 
 from ..category_manager import CategoryManager, Category
+
+class PasswordStrengthBar(QProgressBar):
+    """Custom password strength indicator."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setTextVisible(False)
+        self.setFixedHeight(4)
+        self.setStyleSheet(f"""
+            QProgressBar {{
+                border: none;
+                background-color: {tokens.colors.surface_secondary};
+                border-radius: 2px;
+            }}
+            QProgressBar::chunk {{
+                background-color: {tokens.colors.error};
+                border-radius: 2px;
+            }}
+        """)
+
+    def set_strength(self, strength: int):
+        """Set password strength (0-5)"""
+        self.setValue(strength)
+        self.setMaximum(5)
+
+        if strength <= 2:
+            color = tokens.colors.error
+        elif strength <= 4:
+            color = tokens.colors.warning
+        else:
+            color = tokens.colors.success
+
+        self.setStyleSheet(f"""
+            QProgressBar {{
+                border: none;
+                background-color: {tokens.colors.surface_secondary};
+                border-radius: 2px;
+            }}
+            QProgressBar::chunk {{
+                background-color: {color};
+                border-radius: 2px;
+            }}
+        """)
 
 class EntryDialog(QDialog):
     """Dialog for adding or editing vault entries."""
 
-    entry_saved = Signal(dict)  # Emits the entry data when saved
+    entry_saved = Signal(dict)
 
     def __init__(self, parent=None, entry_data=None, category_manager=None):
         super().__init__(parent)
@@ -32,233 +76,123 @@ class EntryDialog(QDialog):
         layout.setSpacing(20)
         layout.setContentsMargins(32, 32, 32, 32)
 
-        # Title - simple and clean
         title = QLabel("Edit Entry" if self.is_edit_mode else "Add New Entry")
-        title.setStyleSheet("""
-            font-size: 24px;
-            font-weight: 500;
-            color: #1d1d1f;
+        title.setStyleSheet(f"""
+            font-size: {tokens.typography.text_2xl}px;
+            font-weight: {tokens.typography.font_semibold};
+            color: {tokens.colors.text_primary};
             padding-bottom: 4px;
         """)
         layout.addWidget(title)
 
-        # Subtitle
-        subtitle = QLabel("All fields are required except notes")
-        subtitle.setStyleSheet("""
-            font-size: 13px;
-            color: #86868b;
-            padding-bottom: 16px;
-        """)
-        layout.addWidget(subtitle)
-
-        # Form - cleaner spacing
         form_layout = QFormLayout()
         form_layout.setSpacing(16)
         form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
         form_layout.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
 
-        # Service name
-        service_label = QLabel("Service")
-        service_label.setStyleSheet("font-weight: 500; color: #1d1d1f;")
         self.service_input = QLineEdit()
-        self.service_input.setPlaceholderText("Google, GitHub, etc.")
-        form_layout.addRow(service_label, self.service_input)
+        self.service_input.setPlaceholderText("e.g., Google, GitHub")
+        form_layout.addRow(QLabel("Service"), self.service_input)
 
-        # Username
-        username_label = QLabel("Username")
-        username_label.setStyleSheet("font-weight: 500; color: #1d1d1f;")
         self.username_input = QLineEdit()
-        self.username_input.setPlaceholderText("user@example.com")
-        form_layout.addRow(username_label, self.username_input)
+        self.username_input.setPlaceholderText("e.g., user@example.com")
+        form_layout.addRow(QLabel("Username"), self.username_input)
 
-        # Password - simplified
-        password_label = QLabel("Password")
-        password_label.setStyleSheet("font-weight: 500; color: #1d1d1f;")
-        password_layout = QHBoxLayout()
-        password_layout.setSpacing(8)
-
+        password_layout = QVBoxLayout()
+        password_hbox = QHBoxLayout()
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setPlaceholderText("Enter password")
+        self.password_input.textChanged.connect(self._update_password_strength)
 
         self.show_password_btn = QPushButton("Show")
-        self.show_password_btn.setFixedWidth(60)
         self.show_password_btn.setCheckable(True)
         self.show_password_btn.toggled.connect(self._toggle_password_visibility)
-        self.show_password_btn.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                border: 1px solid #d1d1d6;
-                border-radius: 6px;
-                padding: 8px;
-                color: #1d1d1f;
-                font-size: 13px;
-            }
-            QPushButton:hover {
-                background-color: #f5f5f7;
-            }
-            QPushButton:checked {
-                background-color: #e8e8ed;
-                border-color: #86868b;
-            }
-        """)
 
         self.generate_password_btn = QPushButton("Generate")
-        self.generate_password_btn.setFixedWidth(90)
         self.generate_password_btn.clicked.connect(self._generate_password)
-        self.generate_password_btn.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                border: 1px solid #d1d1d6;
-                border-radius: 6px;
-                padding: 8px;
-                color: #1d1d1f;
-                font-size: 13px;
-            }
-            QPushButton:hover {
-                background-color: #f5f5f7;
-            }
-        """)
 
-        password_layout.addWidget(self.password_input, 1)
-        password_layout.addWidget(self.show_password_btn)
-        password_layout.addWidget(self.generate_password_btn)
+        password_hbox.addWidget(self.password_input)
+        password_hbox.addWidget(self.show_password_btn)
+        password_hbox.addWidget(self.generate_password_btn)
 
-        form_layout.addRow(password_label, password_layout)
+        self.strength_bar = PasswordStrengthBar()
+        self.strength_label = QLabel("")
 
-        # URL
-        url_label = QLabel("URL")
-        url_label.setStyleSheet("font-weight: 500; color: #1d1d1f;")
+        password_layout.addLayout(password_hbox)
+        password_layout.addWidget(self.strength_bar)
+        password_layout.addWidget(self.strength_label)
+
+        form_layout.addRow(QLabel("Password"), password_layout)
+
         self.url_input = QLineEdit()
-        self.url_input.setPlaceholderText("https://example.com")
-        form_layout.addRow(url_label, self.url_input)
+        self.url_input.setPlaceholderText("e.g., https://example.com")
+        form_layout.addRow(QLabel("URL"), self.url_input)
 
-        # Category
         if self.category_manager:
-            category_label = QLabel("Category")
-            category_label.setStyleSheet("font-weight: 500; color: #1d1d1f;")
             self.category_combo = QComboBox()
-            self.category_combo.setStyleSheet("""
-                QComboBox {
-                    border: 1px solid #d1d1d6;
-                    border-radius: 6px;
-                    padding: 8px 12px;
-                    background-color: white;
-                    font-size: 13px;
-                    color: #1d1d1f;
-                    min-width: 200px;
-                }
-                QComboBox:hover {
-                    border-color: #adb5bd;
-                }
-                QComboBox:focus {
-                    border-color: #667eea;
-                }
-                QComboBox::drop-down {
-                    subcontrol-origin: padding;
-                    subcontrol-position: top right;
-                    width: 25px;
-                    border-left-width: 1px;
-                    border-left-color: #d1d1d6;
-                    border-left-style: solid;
-                    border-top-right-radius: 6px;
-                    border-bottom-right-radius: 6px;
-                    background-color: #f5f5f7;
-                }
-                QComboBox::down-arrow {
-                    width: 8px;
-                    height: 8px;
-                }
-                QComboBox QAbstractItemView {
-                    border: 1px solid #d1d1d6;
-                    border-radius: 6px;
-                    background-color: white;
-                    selection-background-color: #e3f2fd;
-                    outline: none;
-                }
-                QComboBox QAbstractItemView::item {
-                    padding: 8px 12px;
-                    border-bottom: 1px solid #f1f3f5;
-                }
-                QComboBox QAbstractItemView::item:selected {
-                    background-color: #e3f2fd;
-                    color: #1565c0;
-                }
-            """)
             self._populate_category_combo()
-            form_layout.addRow(category_label, self.category_combo)
+            form_layout.addRow(QLabel("Category"), self.category_combo)
         else:
             self.category_combo = None
 
-        # Notes (optional) - more compact
-        notes_label = QLabel("Notes (optional)")
-        notes_label.setStyleSheet("font-weight: 500; color: #86868b;")
         self.notes_input = QTextEdit()
-        self.notes_input.setPlaceholderText("Add any additional notes here...")
-        self.notes_input.setMaximumHeight(70)
-        self.notes_input.setStyleSheet("""
-            QTextEdit {
-                border: 1px solid #d1d1d6;
-                border-radius: 6px;
-                padding: 8px;
-                background-color: #f5f5f7;
-            }
-            QTextEdit:focus {
-                background-color: white;
-                border-color: #667eea;
-            }
-        """)
-        form_layout.addRow(notes_label, self.notes_input)
+        self.notes_input.setPlaceholderText("Add any additional notes...")
+        self.notes_input.setMaximumHeight(80)
+        form_layout.addRow(QLabel("Notes"), self.notes_input)
 
         layout.addLayout(form_layout)
         layout.addStretch()
 
-        # Buttons - cleaner design
         button_layout = QHBoxLayout()
-        button_layout.setSpacing(12)
-
-        self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setFixedHeight(40)
-        self.cancel_btn.clicked.connect(self.reject)
-        self.cancel_btn.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                border: 1px solid #d1d1d6;
-                border-radius: 8px;
-                padding: 0 24px;
-                color: #1d1d1f;
-                font-size: 14px;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background-color: #f5f5f7;
-            }
-        """)
-
-        self.save_btn = QPushButton("Save" if self.is_edit_mode else "Add Entry")
-        self.save_btn.setFixedHeight(40)
-        self.save_btn.clicked.connect(self._save_entry)
-        self.save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.save_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #1d1d1f;
-                border: none;
-                border-radius: 8px;
-                padding: 0 24px;
-                color: white;
-                font-size: 14px;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background-color: #2d2d2f;
-            }
-        """)
-
         button_layout.addStretch()
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.clicked.connect(self.reject)
+        self.save_btn = QPushButton("Save")
+        self.save_btn.clicked.connect(self._save_entry)
+        self.save_btn.setObjectName("primaryButton")
         button_layout.addWidget(self.cancel_btn)
         button_layout.addWidget(self.save_btn)
-
         layout.addLayout(button_layout)
+
+        self._apply_styles()
+
+    def _apply_styles(self):
+        self.setStyleSheet(f"""
+            QDialog {{
+                background-color: {tokens.colors.surface};
+            }}
+            QLabel {{
+                font-size: {tokens.typography.text_sm}px;
+                color: {tokens.colors.text_secondary};
+            }}
+            QLineEdit, QTextEdit, QComboBox {{
+                background-color: {tokens.colors.input_background};
+                border: 1px solid {tokens.colors.input_border};
+                border-radius: {tokens.border_radius.md}px;
+                padding: {tokens.spacing.sm}px {tokens.spacing.md}px;
+                font-size: {tokens.typography.text_sm}px;
+                color: {tokens.colors.text_primary};
+            }}
+            QLineEdit:focus, QTextEdit:focus, QComboBox:focus {{
+                border-color: {tokens.colors.primary};
+            }}
+            QPushButton {{
+                padding: {tokens.spacing.sm}px {tokens.spacing.lg}px;
+                border-radius: {tokens.border_radius.md}px;
+                font-size: {tokens.typography.text_sm}px;
+                font-weight: {tokens.typography.font_medium};
+            }}
+            QPushButton#primaryButton {{
+                background-color: {tokens.colors.primary};
+                color: {tokens.colors.text_inverse};
+                border: none;
+            }}
+            QPushButton#primaryButton:hover {{
+                background-color: {tokens.colors.primary_dark};
+            }}
+        """)
+        self.strength_label.setStyleSheet(f"font-size: {tokens.typography.text_xs}px; color: {tokens.colors.text_tertiary};")
 
     def _load_data(self):
         """Loads existing entry data into the form."""
@@ -268,17 +202,20 @@ class EntryDialog(QDialog):
         self.url_input.setText(self.entry_data.get("url", ""))
         self.notes_input.setPlainText(self.entry_data.get("notes", ""))
         
-        # Load category if available
         if self.category_combo and self.category_manager:
             category_id = self.entry_data.get("category", CategoryManager.UNCATEGORIZED_ID)
             self._select_category_in_combo(category_id)
+
+        self._update_password_strength()
 
     def _toggle_password_visibility(self, checked):
         """Toggles password visibility."""
         if checked:
             self.password_input.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.show_password_btn.setText("Hide")
         else:
             self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+            self.show_password_btn.setText("Show")
 
     def _generate_password(self):
         """Opens the advanced password generator dialog."""
@@ -294,6 +231,45 @@ class EntryDialog(QDialog):
         self.password_input.setEchoMode(QLineEdit.EchoMode.Normal)
         self.show_password_btn.setChecked(True)
 
+    def _update_password_strength(self):
+        """Update password strength indicator."""
+        password = self.password_input.text()
+        if not password:
+            self.strength_bar.hide()
+            self.strength_label.setText("")
+            return
+
+        self.strength_bar.show()
+        strength = 0
+        feedback = []
+
+        if len(password) >= 8: strength += 1
+        else: feedback.append("8+ chars")
+
+        if any(c.isupper() for c in password): strength += 1
+        else: feedback.append("uppercase")
+
+        if any(c.islower() for c in password): strength += 1
+        else: feedback.append("lowercase")
+
+        if any(c.isdigit() for c in password): strength += 1
+        else: feedback.append("number")
+
+        if any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?~`" for c in password): strength += 1
+        else: feedback.append("special")
+
+        self.strength_bar.set_strength(strength)
+
+        if strength <= 2:
+            self.strength_label.setText(f"Weak. Add: {', '.join(feedback)}")
+            self.strength_label.setStyleSheet(f"color: {tokens.colors.error};")
+        elif strength <= 4:
+            self.strength_label.setText(f"Medium. Consider: {', '.join(feedback)}")
+            self.strength_label.setStyleSheet(f"color: {tokens.colors.warning};")
+        else:
+            self.strength_label.setText("Strong password")
+            self.strength_label.setStyleSheet(f"color: {tokens.colors.success};")
+
     def _save_entry(self):
         """Validates and saves the entry."""
         service = self.service_input.text().strip()
@@ -302,61 +278,31 @@ class EntryDialog(QDialog):
         url = self.url_input.text().strip()
         notes = self.notes_input.toPlainText().strip()
 
-        if not service:
-            self.service_input.setFocus()
-            return
-
-        if not username:
-            self.username_input.setFocus()
-            return
-
-        if not password:
-            self.password_input.setFocus()
+        if not service or not username or not password:
+            # Basic validation feedback
             return
 
         entry = {
-            "service": service,
-            "username": username,
-            "password": password,
-            "url": url,
-            "notes": notes
+            "service": service, "username": username, "password": password,
+            "url": url, "notes": notes
         }
         
-        # Add category if available
         if self.category_combo and self.category_manager:
-            selected_category_id = self._get_selected_category_id()
-            if selected_category_id:
-                entry["category"] = selected_category_id
-            else:
-                entry["category"] = CategoryManager.UNCATEGORIZED_ID
+            entry["category"] = self._get_selected_category_id()
 
         self.entry_saved.emit(entry)
         self.accept()
     
     def _populate_category_combo(self):
         """Populate the category combo box."""
-        if not self.category_manager:
-            return
-        
+        if not self.category_manager: return
         self.category_combo.clear()
-        
-        categories = self.category_manager.get_all_categories()
-        for category in categories:
-            # Create display text with icon and name
-            display_text = f"{category.icon} {category.name}"
-            
-            # Add item with category ID as data
-            self.category_combo.addItem(display_text, category.id)
-            
-            # Set color for the item (create colored circle)
-            item_index = self.category_combo.count() - 1
-            # Note: We could add a colored indicator here if needed
+        for category in self.category_manager.get_all_categories():
+            self.category_combo.addItem(f"{category.icon} {category.name}", category.id)
     
     def _select_category_in_combo(self, category_id: str):
         """Select a category in the combo box by ID."""
-        if not self.category_combo:
-            return
-        
+        if not self.category_combo: return
         for i in range(self.category_combo.count()):
             if self.category_combo.itemData(i) == category_id:
                 self.category_combo.setCurrentIndex(i)
@@ -364,11 +310,5 @@ class EntryDialog(QDialog):
     
     def _get_selected_category_id(self) -> str:
         """Get the selected category ID from the combo box."""
-        if not self.category_combo:
-            return CategoryManager.UNCATEGORIZED_ID
-        
-        current_index = self.category_combo.currentIndex()
-        if current_index >= 0:
-            return self.category_combo.itemData(current_index)
-        
-        return CategoryManager.UNCATEGORIZED_ID
+        if not self.category_combo: return CategoryManager.UNCATEGORIZED_ID
+        return self.category_combo.currentData() or CategoryManager.UNCATEGORIZED_ID
