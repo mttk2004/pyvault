@@ -2,23 +2,25 @@ import unittest
 import os
 import sys
 
-# Add the src directory to the Python path to import crypto_logic
+# Add the src directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
+# Import the logic to be tested, and the new config module
 from src import crypto_logic
+from src import config
 
 class TestCryptoLogic(unittest.TestCase):
 
     def setUp(self):
-        """Set up common variables for tests."""
+        """Set up common variables for tests, using constants from the config module."""
         self.password = "my-super-secret-password-123"
-        self.salt = os.urandom(crypto_logic.SALT_SIZE)
+        self.salt = os.urandom(config.SALT_SIZE)
         self.plain_data = b'{"user": "test", "pass": "p@ssword"}'
 
     def test_derive_key_success(self):
         """Test that key derivation is successful with valid inputs."""
         key = crypto_logic.derive_key(self.password.encode(), self.salt)
-        self.assertEqual(len(key), crypto_logic.KEY_SIZE)
+        self.assertEqual(len(key), config.KEY_SIZE)
         self.assertIsInstance(key, bytes)
 
         # Same password and salt should produce the same key
@@ -26,7 +28,7 @@ class TestCryptoLogic(unittest.TestCase):
         self.assertEqual(key, key2)
 
         # Different salt should produce a different key
-        different_salt = os.urandom(crypto_logic.SALT_SIZE)
+        different_salt = os.urandom(config.SALT_SIZE)
         key3 = crypto_logic.derive_key(self.password.encode(), different_salt)
         self.assertNotEqual(key, key3)
 
@@ -44,7 +46,7 @@ class TestCryptoLogic(unittest.TestCase):
         key = crypto_logic.derive_key(self.password.encode(), self.salt)
         nonce, ciphertext = crypto_logic.encrypt(self.plain_data, key)
 
-        self.assertEqual(len(nonce), crypto_logic.AES_NONCE_SIZE)
+        self.assertEqual(len(nonce), config.AES_NONCE_SIZE)
         self.assertNotEqual(self.plain_data, ciphertext)
 
         decrypted_data = crypto_logic.decrypt(nonce, ciphertext, key)
