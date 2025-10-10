@@ -5,7 +5,7 @@ from PySide6.QtCore import QTimer, QObject, QEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 # UI Imports
-from src.ui.design_system import DarkTheme
+from src.ui.design_system import LightTheme
 from src.ui.login_screen import LoginScreen
 from src.ui.main_window import MainWindow as MainApplicationWindow
 
@@ -21,7 +21,7 @@ class ApplicationController(QObject):
     def __init__(self):
         super().__init__()
         self.app = QApplication(sys.argv)
-        self.app.setStyleSheet(DarkTheme.STYLESHEET)
+        self.app.setStyleSheet(LightTheme.STYLESHEET)
 
         # Install event filter to detect user activity
         self.app.installEventFilter(self)
