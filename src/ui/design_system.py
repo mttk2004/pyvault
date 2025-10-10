@@ -1,32 +1,32 @@
 """
 Design System for PyVault UI
-Inspired by the Bitwarden dark theme.
+A clean, light theme.
 """
 
 from PySide6.QtGui import QColor
 
-class DarkTheme:
+class LightTheme:
     # Primary Colors
-    BACKGROUND = "#1c1c1c"
-    PRIMARY = "#121212"
-    TEXT = "#ffffff"
+    BACKGROUND = "#f5f5f5"
+    PRIMARY = "#ffffff"
+    TEXT = "#212529"
 
     # Accent Colors
-    ACCENT = "#9b59b6"  # A shade of purple
-    ACCENT_HOVER = "#8e44ad"
+    ACCENT = "#007bff"  # A shade of blue
+    ACCENT_HOVER = "#0056b3"
 
     # Secondary Colors
-    SECONDARY_BACKGROUND = "#2c2c2c"
-    SECONDARY_TEXT = "#a0a0a0"
+    SECONDARY_BACKGROUND = "#ffffff"
+    SECONDARY_TEXT = "#6c757d"
 
     # Common UI Elements
-    BORDER = "#3a3a3a"
-    INPUT_BACKGROUND = "#252525"
+    BORDER = "#ced4da"
+    INPUT_BACKGROUND = "#ffffff"
 
     # Status Colors
-    SUCCESS = "#2ecc71"
-    ERROR = "#e74c3c"
-    WARNING = "#f39c12"
+    SUCCESS = "#28a745"
+    ERROR = "#dc3545"
+    WARNING = "#ffc107"
 
     # Font styles
     FONT_FAMILY = "Segoe UI"
@@ -48,6 +48,7 @@ class DarkTheme:
 
         QLabel {{
             color: {TEXT};
+            background-color: transparent;
         }}
 
         QLineEdit, QTextEdit {{
@@ -64,7 +65,7 @@ class DarkTheme:
 
         QPushButton {{
             background-color: {ACCENT};
-            color: {TEXT};
+            color: {PRIMARY};
             border: none;
             padding: 8px 16px;
             border-radius: 4px;
@@ -75,6 +76,12 @@ class DarkTheme:
         }}
 
         QListWidget {{
+            background-color: {SECONDARY_BACKGROUND};
+            border: 1px solid {BORDER};
+            border-radius: 4px;
+        }}
+
+        QTextBrowser {{
             background-color: {SECONDARY_BACKGROUND};
             border: 1px solid {BORDER};
             border-radius: 4px;
