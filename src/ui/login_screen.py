@@ -1,64 +1,73 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QFileDialog
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 from PySide6.QtCore import Signal
 
 class LoginScreen(QWidget):
-    login_successful = Signal(str, str) # vault_path, password
+    # This signal now only carries the password. The controller knows the context.
+    login_attempted = Signal(str)
 
     def __init__(self):
         super().__init__()
+        self.mode = 'unlock'  # Default mode
         self.layout = QVBoxLayout(self)
 
         # Title
-        self.title = QLabel("PyVault")
+        self.title = QLabel("Unlock Vault")
         self.title.setStyleSheet("font-size: 24px; font-weight: bold;")
         self.layout.addWidget(self.title)
 
-        # Vault Path Input
-        self.path_layout = QHBoxLayout()
-        self.vault_path = QLineEdit()
-        self.vault_path.setPlaceholderText("Path to your vault file")
-        self.browse_button = QPushButton("Browse")
-        self.browse_button.clicked.connect(self.browse_for_vault)
-        self.path_layout.addWidget(self.vault_path)
-        self.path_layout.addWidget(self.browse_button)
-        self.layout.addLayout(self.path_layout)
-
         # Master Password Input
-        self.password = QLineEdit()
-        self.password.setPlaceholderText("Master Password")
-        self.password.setEchoMode(QLineEdit.Password)
-        self.layout.addWidget(self.password)
+        self.password_input = QLineEdit()
+        self.password_input.setPlaceholderText("Master Password")
+        self.password_input.setEchoMode(QLineEdit.Password)
+        self.layout.addWidget(self.password_input)
 
-        # Buttons
-        self.button_layout = QHBoxLayout()
-        self.unlock_button = QPushButton("Unlock")
-        self.create_button = QPushButton("Create New Vault")
-        self.unlock_button.clicked.connect(self.unlock_vault)
-        self.create_button.clicked.connect(self.create_vault)
-        self.button_layout.addWidget(self.unlock_button)
-        self.button_layout.addWidget(self.create_button)
-        self.layout.addLayout(self.button_layout)
+        # Confirm Master Password Input (hidden by default)
+        self.confirm_password_input = QLineEdit()
+        self.confirm_password_input.setPlaceholderText("Confirm Master Password")
+        self.confirm_password_input.setEchoMode(QLineEdit.Password)
+        self.confirm_password_input.hide()
+        self.layout.addWidget(self.confirm_password_input)
 
-    def browse_for_vault(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select Vault File", "", "PyVault Files (*.json)")
-        if file_path:
-            self.vault_path.setText(file_path)
+        # Action Button (for Unlock or Create)
+        self.action_button = QPushButton("Unlock")
+        self.action_button.clicked.connect(self.on_action_button_clicked)
+        self.layout.addWidget(self.action_button)
 
-    def unlock_vault(self):
-        vault_path = self.vault_path.text()
-        password = self.password.text()
-        if vault_path and password:
-            self.login_successful.emit(vault_path, password)
+    def set_mode(self, mode):
+        """
+        Switches the UI between 'create' and 'unlock' modes.
+        """
+        self.mode = mode
+        if mode == 'create':
+            self.title.setText("Create New Vault")
+            self.confirm_password_input.show()
+            self.action_button.setText("Create Vault")
+        else: # 'unlock'
+            self.title.setText("Unlock Vault")
+            self.confirm_password_input.hide()
+            self.action_button.setText("Unlock")
+        self.clear_fields()
 
-    def create_vault(self):
-        # This will be handled in the main application logic
-        # For now, we can just signal that the user wants to create a vault
-        # Or we can handle the file dialog here. Let's do that.
-        file_path, _ = QFileDialog.getSaveFileName(self, "Create New Vault", "", "PyVault Files (*.json)")
-        if file_path:
-            self.vault_path.setText(file_path)
-            # A new vault still requires a password to be set by the user
-            # We can reuse the login_successful signal, and the main logic will check if the file exists
-            password = self.password.text()
-            if password:
-                self.login_successful.emit(file_path, password)
+    def on_action_button_clicked(self):
+        """
+        Handles the click of the main action button, validating input
+        based on the current mode.
+        """
+        password = self.password_input.text()
+
+        if not password:
+            QMessageBox.warning(self, "Input Error", "Password cannot be empty.")
+            return
+
+        if self.mode == 'create':
+            confirm_password = self.confirm_password_input.text()
+            if password != confirm_password:
+                QMessageBox.warning(self, "Input Error", "Passwords do not match.")
+                return
+
+        self.login_attempted.emit(password)
+
+    def clear_fields(self):
+        """Clears all password input fields."""
+        self.password_input.clear()
+        self.confirm_password_input.clear()

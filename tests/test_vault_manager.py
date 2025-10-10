@@ -14,6 +14,7 @@ class TestVaultManager(unittest.TestCase):
         """Set up a temporary file path for testing."""
         self.test_file = "test_vault.dat"
         self.salt = os.urandom(16)
+        self.verification_hash = os.urandom(32)
         self.nonce = os.urandom(12)
         self.ciphertext = os.urandom(32)
 
@@ -24,13 +25,14 @@ class TestVaultManager(unittest.TestCase):
 
     def test_save_and_load_vault_roundtrip(self):
         """Test that saving and loading a vault works correctly."""
-        vault_manager.save_vault(self.test_file, self.salt, self.nonce, self.ciphertext)
+        vault_manager.save_vault(self.test_file, self.salt, self.verification_hash, self.nonce, self.ciphertext)
 
         self.assertTrue(os.path.exists(self.test_file))
 
-        loaded_salt, loaded_nonce, loaded_ciphertext = vault_manager.load_vault(self.test_file)
+        loaded_salt, loaded_hash, loaded_nonce, loaded_ciphertext = vault_manager.load_vault(self.test_file)
 
         self.assertEqual(self.salt, loaded_salt)
+        self.assertEqual(self.verification_hash, loaded_hash)
         self.assertEqual(self.nonce, loaded_nonce)
         self.assertEqual(self.ciphertext, loaded_ciphertext)
 
@@ -51,8 +53,9 @@ class TestVaultManager(unittest.TestCase):
         """Test that loading a vault with missing keys raises VaultCorruptedError."""
         corrupted_data = {
             "salt": "c2FsdA==",
+            "nonce": "bm9uY2U=",
             "ciphertext": "Y2lwaGVydGV4dA=="
-            # "nonce" is missing
+            # "verification_hash" is missing
         }
         with open(self.test_file, 'w') as f:
             json.dump(corrupted_data, f)
@@ -64,6 +67,7 @@ class TestVaultManager(unittest.TestCase):
         """Test that loading a vault with invalid base64 data raises VaultCorruptedError."""
         corrupted_data = {
             "salt": "c2FsdA==",
+            "verification_hash": "aGFzaA==",
             "nonce": "invalid-base64", # This is not a valid base64 string
             "ciphertext": "Y2lwaGVydGV4dA=="
         }
@@ -76,9 +80,11 @@ class TestVaultManager(unittest.TestCase):
     def test_save_vault_empty_parameters(self):
         """Test that save_vault raises ValueError for empty parameters."""
         with self.assertRaises(ValueError):
-            vault_manager.save_vault("", self.salt, self.nonce, self.ciphertext)
+            vault_manager.save_vault("", self.salt, self.verification_hash, self.nonce, self.ciphertext)
         with self.assertRaises(ValueError):
-            vault_manager.save_vault(self.test_file, b"", self.nonce, self.ciphertext)
+            vault_manager.save_vault(self.test_file, b"", self.verification_hash, self.nonce, self.ciphertext)
+        with self.assertRaises(ValueError):
+            vault_manager.save_vault(self.test_file, self.salt, b"", self.nonce, self.ciphertext)
 
 if __name__ == '__main__':
     unittest.main()

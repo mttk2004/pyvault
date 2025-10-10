@@ -68,3 +68,14 @@ def decrypt(nonce: bytes, ciphertext: bytes, key: bytes) -> bytes:
         # In a real app, you might want to log this error, but for the user,
         # it just means decryption failed (wrong password or corrupted data).
         raise ValueError("Decryption failed. Incorrect password or corrupted data.") from e
+
+import hashlib
+
+def hash_key(key: bytes) -> bytes:
+    """Hashes the encryption key using SHA256 for verification."""
+    if not key or len(key) != KEY_SIZE:
+        raise ValueError(f"Key must be {KEY_SIZE} bytes.")
+
+    hasher = hashlib.sha256()
+    hasher.update(key)
+    return hasher.digest()
