@@ -1,68 +1,82 @@
 """
-PyVault Design System - Bitwarden Inspired
+Design System for PyVault UI
+Inspired by the Bitwarden dark theme.
 """
 
-# Color constants inspired by Bitwarden
-class Colors:
-    # Backgrounds
-    PRIMARY_BG = "#1A1D29"
-    SECONDARY_BG = "#242937"
-    SURFACE_BG = "#2F3349"
-    CARD_BG = "#363B52"
+from PySide6.QtGui import QColor
 
-    # Text
-    PRIMARY_TEXT = "#FFFFFF"
-    SECONDARY_TEXT = "#C7D0DD"
-    MUTED_TEXT = "#8996A8"
+class DarkTheme:
+    # Primary Colors
+    BACKGROUND = "#1c1c1c"
+    PRIMARY = "#121212"
+    TEXT = "#ffffff"
 
-    # Accent
-    BLUE_ACCENT = "#175DDC"
-    BLUE_HOVER = "#1252C4"
+    # Accent Colors
+    ACCENT = "#9b59b6"  # A shade of purple
+    ACCENT_HOVER = "#8e44ad"
 
-    # Borders
-    BORDER = "#3F4561"
-    BORDER_LIGHT = "#4A5068"
+    # Secondary Colors
+    SECONDARY_BACKGROUND = "#2c2c2c"
+    SECONDARY_TEXT = "#a0a0a0"
 
-    # Status
-    SUCCESS = "#00A651"
-    ERROR = "#E53E3E"
-    WARNING = "#F6AD55"
+    # Common UI Elements
+    BORDER = "#3a3a3a"
+    INPUT_BACKGROUND = "#252525"
 
+    # Status Colors
+    SUCCESS = "#2ecc71"
+    ERROR = "#e74c3c"
+    WARNING = "#f39c12"
 
-def get_global_stylesheet():
-    """Get global stylesheet for the application"""
-    return f"""
-    QWidget {{
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 14px;
-        color: {Colors.PRIMARY_TEXT};
-        background-color: {Colors.PRIMARY_BG};
-    }}
+    # Font styles
+    FONT_FAMILY = "Segoe UI"
+    FONT_SIZE_NORMAL = "14px"
+    FONT_SIZE_LARGE = "16px"
+    FONT_SIZE_SMALL = "12px"
 
-    QPushButton {{
-        background-color: {Colors.BLUE_ACCENT};
-        color: white;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 16px;
-        font-weight: 500;
-        min-height: 32px;
-    }}
+    STYLESHEET = f"""
+        QWidget {{
+            font-family: {FONT_FAMILY};
+            font-size: {FONT_SIZE_NORMAL};
+            color: {TEXT};
+            background-color: {BACKGROUND};
+        }}
 
-    QPushButton:hover {{
-        background-color: {Colors.BLUE_HOVER};
-    }}
+        QMainWindow {{
+            background-color: {BACKGROUND};
+        }}
 
-    QLineEdit {{
-        background-color: {Colors.SURFACE_BG};
-        color: {Colors.PRIMARY_TEXT};
-        border: 1px solid {Colors.BORDER};
-        border-radius: 6px;
-        padding: 10px 12px;
-        font-size: 14px;
-    }}
+        QLabel {{
+            color: {TEXT};
+        }}
 
-    QLineEdit:focus {{
-        border-color: {Colors.BLUE_ACCENT};
-    }}
+        QLineEdit, QTextEdit {{
+            background-color: {INPUT_BACKGROUND};
+            border: 1px solid {BORDER};
+            border-radius: 4px;
+            padding: 5px;
+            color: {TEXT};
+        }}
+
+        QLineEdit:focus, QTextEdit:focus {{
+            border: 1px solid {ACCENT};
+        }}
+
+        QPushButton {{
+            background-color: {ACCENT};
+            color: {TEXT};
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }}
+
+        QPushButton:hover {{
+            background-color: {ACCENT_HOVER};
+        }}
+
+        QListWidget {{
+            background-color: {SECONDARY_BACKGROUND};
+            border: 1px solid {BORDER};
+            border-radius: 4px;
+        }}
     """
