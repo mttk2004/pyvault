@@ -1,12 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 
 # This file is a PyInstaller specification file.
 # It tells PyInstaller how to package the PyVault application.
 
+# Get the directory where this spec file is located, making the path relative
+app_path = os.path.dirname(os.path.abspath(__file__))
+
 # Analysis: This section finds all the Python modules and libraries your application needs.
 a = Analysis(
     ['main.py'],
-    pathex=['/home/kiet/projects/pyvault'],
+    pathex=[app_path],  # Use the dynamic, relative path
     binaries=[],
     datas=[('src/assets', 'assets')],  # Include assets folder
     hiddenimports=['PySide6.QtCore', 'PySide6.QtGui', 'PySide6.QtWidgets'],
