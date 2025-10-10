@@ -1,367 +1,146 @@
-"""
-PyVault Main Window - Bitwarden Inspired Design
-Modern 3-panel layout similar to Bitwarden with dark theme.
-"""
-
+import uuid
+import html
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QSplitter, QFrame, QLabel, QPushButton, QLineEdit, QListWidget,
-    QListWidgetItem, QScrollArea, QToolButton
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QLabel,
+    QSplitter, QPushButton, QListWidgetItem, QTextBrowser
 )
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt
 
-from .design_system import Colors, get_global_stylesheet
-from ..category_manager import CategoryManager
+# UI Imports
+from src.ui.add_entry_screen import AddEntryScreen
+from src.ui.category_screen import CategoryScreen
 
-
-class VaultSidebar(QFrame):
-    """Left sidebar with navigation options like Bitwarden"""
-
-    def __init__(self):
-        super().__init__()
-        self.setFixedWidth(240)
-        self.setup_ui()
-
-    def setup_ui(self):
-        self.setStyleSheet(f"""
-            QFrame {{
-                background-color: {Colors.PRIMARY_BG};
-                border-right: 1px solid {Colors.BORDER};
-            }}
-        """)
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 20, 16, 20)
-        layout.setSpacing(16)
-
-        # Header
-        header_layout = QHBoxLayout()
-
-        vault_label = QLabel("Vault")
-        vault_label.setStyleSheet(f"""
-            font-size: 18px;
-            font-weight: 600;
-            color: {Colors.PRIMARY_TEXT};
-        """)
-        header_layout.addWidget(vault_label)
-
-        header_layout.addStretch()
-
-        new_btn = QPushButton("+ New")
-        new_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {Colors.BLUE_ACCENT};
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-weight: 500;
-            }}
-            QPushButton:hover {{
-                background-color: {Colors.BLUE_HOVER};
-            }}
-        """)
-        header_layout.addWidget(new_btn)
-
-        layout.addLayout(header_layout)
-
-        # Search
-        search_bar = QLineEdit()
-        search_bar.setPlaceholderText("Search...")
-        layout.addWidget(search_bar)
-
-        # Navigation list
-        nav_list = QListWidget()
-        nav_list.setStyleSheet(f"""
-            QListWidget {{
-                background-color: transparent;
-                border: none;
-                outline: none;
-            }}
-            QListWidget::item {{
-                padding: 12px;
-                border-radius: 6px;
-                margin: 2px 0px;
-                color: {Colors.SECONDARY_TEXT};
-            }}
-            QListWidget::item:hover {{
-                background-color: {Colors.SURFACE_BG};
-            }}
-            QListWidget::item:selected {{
-                background-color: {Colors.BLUE_ACCENT};
-                color: white;
-            }}
-        """)
-
-        items = ["All items", "Favorites", "Logins", "Cards", "Secure notes"]
-        for item in items:
-            nav_list.addItem(item)
-
-        layout.addWidget(nav_list)
-        layout.addStretch()
-
-
-class VaultItemList(QFrame):
-    """Middle panel showing list of vault items"""
-
-    item_selected = Signal(dict)
-
-    def __init__(self):
-        super().__init__()
-        self.vault_data = []
-        self.setup_ui()
-
-    def setup_ui(self):
-        self.setStyleSheet(f"""
-            QFrame {{
-                background-color: {Colors.SECONDARY_BG};
-                border-right: 1px solid {Colors.BORDER};
-            }}
-        """)
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-
-        # Header
-        header = QFrame()
-        header.setFixedHeight(60)
-        header.setStyleSheet(f"""
-            QFrame {{
-                background-color: {Colors.SECONDARY_BG};
-                border-bottom: 1px solid {Colors.BORDER};
-            }}
-        """)
-
-        header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(20, 0, 20, 0)
-
-        title_label = QLabel("All items")
-        title_label.setStyleSheet(f"""
-            font-size: 20px;
-            font-weight: 600;
-            color: {Colors.PRIMARY_TEXT};
-        """)
-        header_layout.addWidget(title_label)
-        header_layout.addStretch()
-
-        layout.addWidget(header)
-
-        # Items area
-        self.items_widget = QWidget()
-        self.items_layout = QVBoxLayout(self.items_widget)
-        self.items_layout.setContentsMargins(0, 0, 0, 0)
-        self.items_layout.setSpacing(0)
-
-        scroll_area = QScrollArea()
-        scroll_area.setWidget(self.items_widget)
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("QScrollArea { border: none; }")
-
-        layout.addWidget(scroll_area)
-
-    def populate_items(self, vault_data):
-        """Populate the item list"""
-        self.vault_data = vault_data
-
-        # Clear existing items
-        for i in reversed(range(self.items_layout.count())):
-            child = self.items_layout.itemAt(i).widget()
-            if child:
-                child.deleteLater()
-
-        # Add items
-        for entry in vault_data:
-            item_widget = self.create_item_widget(entry)
-            self.items_layout.addWidget(item_widget)
-
-        self.items_layout.addStretch()
-
-    def create_item_widget(self, entry):
-        """Create a single item widget"""
-        item = QFrame()
-        item.setFixedHeight(60)
-        item.setStyleSheet(f"""
-            QFrame {{
-                background-color: transparent;
-                border-bottom: 1px solid {Colors.BORDER};
-            }}
-            QFrame:hover {{
-                background-color: {Colors.SURFACE_BG};
-            }}
-        """)
-
-        layout = QHBoxLayout(item)
-        layout.setContentsMargins(20, 12, 20, 12)
-
-        # Icon
-        icon_label = QLabel("🔐")
-        icon_label.setFixedSize(24, 24)
-        layout.addWidget(icon_label)
-
-        # Content
-        content_layout = QVBoxLayout()
-
-        service_label = QLabel(entry.get('service', 'Untitled'))
-        service_label.setStyleSheet(f"""
-            font-size: 14px;
-            font-weight: 500;
-            color: {Colors.PRIMARY_TEXT};
-        """)
-        content_layout.addWidget(service_label)
-
-        username_label = QLabel(entry.get('username', ''))
-        username_label.setStyleSheet(f"""
-            font-size: 13px;
-            color: {Colors.MUTED_TEXT};
-        """)
-        content_layout.addWidget(username_label)
-
-        layout.addLayout(content_layout)
-        layout.addStretch()
-
-        # Make clickable
-        item.mousePressEvent = lambda e: self.item_selected.emit(entry)
-
-        return item
-
-
-class VaultDetailPanel(QFrame):
-    """Right panel showing item details"""
-
-    def __init__(self):
-        super().__init__()
-        self.setup_ui()
-
-    def setup_ui(self):
-        self.setMinimumWidth(350)
-        self.setStyleSheet(f"""
-            QFrame {{
-                background-color: {Colors.PRIMARY_BG};
-            }}
-        """)
-
-        self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(20, 20, 20, 20)
-
-        # Initially show empty state
-        self.show_empty_state()
-
-    def show_empty_state(self):
-        """Show empty state when no item is selected"""
-        self.clear_layout()
-
-        empty_label = QLabel("Select an item to view details")
-        empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_label.setStyleSheet(f"""
-            font-size: 16px;
-            color: {Colors.MUTED_TEXT};
-            padding: 40px;
-        """)
-        self.layout.addWidget(empty_label)
-
-    def show_item_details(self, item):
-        """Show details for selected item"""
-        self.clear_layout()
-
-        # Service name
-        service_label = QLabel(item.get('service', 'Untitled'))
-        service_label.setStyleSheet(f"""
-            font-size: 18px;
-            font-weight: 600;
-            color: {Colors.PRIMARY_TEXT};
-            margin-bottom: 20px;
-        """)
-        self.layout.addWidget(service_label)
-
-        # Fields
-        fields = [
-            ("Username", item.get('username', '')),
-            ("Password", "••••••••"),
-            ("URL", item.get('url', '')),
-        ]
-
-        for label, value in fields:
-            if value:
-                field_layout = QVBoxLayout()
-
-                label_widget = QLabel(label)
-                label_widget.setStyleSheet(f"""
-                    font-size: 12px;
-                    color: {Colors.MUTED_TEXT};
-                    margin-bottom: 4px;
-                """)
-                field_layout.addWidget(label_widget)
-
-                value_widget = QLabel(value)
-                value_widget.setStyleSheet(f"""
-                    font-size: 14px;
-                    color: {Colors.PRIMARY_TEXT};
-                    padding: 8px 0px;
-                """)
-                field_layout.addWidget(value_widget)
-
-                self.layout.addLayout(field_layout)
-
-        self.layout.addStretch()
-
-    def clear_layout(self):
-        """Clear all widgets from layout"""
-        for i in reversed(range(self.layout.count())):
-            child = self.layout.itemAt(i).widget()
-            if child:
-                child.deleteLater()
-
+# Core Logic Imports
+from src.category_manager import CategoryManager
 
 class MainWindow(QMainWindow):
-    """Main application window with Bitwarden-inspired layout"""
-
-    data_changed = Signal()
-    lock_requested = Signal()
-
-    def __init__(self, category_manager=None):
+    def __init__(self, vault_data, save_vault_callback):
         super().__init__()
-        self.category_manager = category_manager or CategoryManager()
-        self.vault_data = []
-
         self.setWindowTitle("PyVault")
-        self.setMinimumSize(1000, 700)
-        self.resize(1200, 800)
+        self.setGeometry(100, 100, 1200, 800)
 
-        self.setup_ui()
+        # Store vault data and the callback to save it
+        self.vault_data = vault_data
+        self.save_vault_callback = save_vault_callback
 
-    def setup_ui(self):
-        """Setup the main UI with 3-panel layout"""
+        # Initialize CategoryManager with data from the vault
+        self.category_manager = CategoryManager()
+        self.category_manager.from_dict({"categories": self.vault_data.get("categories", [])})
 
-        # Apply global stylesheet
-        self.setStyleSheet(get_global_stylesheet())
+        # --- UI Setup ---
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.main_layout = QHBoxLayout(self.central_widget)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
 
-        # Create splitter for 3-panel layout
-        splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.main_layout.addWidget(self.splitter)
 
-        # Create panels
-        self.sidebar = VaultSidebar()
-        self.item_list = VaultItemList()
-        self.detail_panel = VaultDetailPanel()
+        # Sidebar for categories
+        self.sidebar = QWidget()
+        self.sidebar_layout = QVBoxLayout(self.sidebar)
+        self.sidebar_layout.addWidget(QLabel("Categories"))
+        self.category_list = QListWidget()
+        self.sidebar_layout.addWidget(self.category_list)
+        self.manage_categories_button = QPushButton("Manage Categories")
+        self.sidebar_layout.addWidget(self.manage_categories_button)
+        self.splitter.addWidget(self.sidebar)
 
-        # Add panels to splitter
-        splitter.addWidget(self.sidebar)
-        splitter.addWidget(self.item_list)
-        splitter.addWidget(self.detail_panel)
+        # Main content area
+        self.main_content = QSplitter(Qt.Vertical)
 
-        # Set proportions
-        splitter.setSizes([240, 500, 350])
+        # Entries list
+        self.entries_widget = QWidget()
+        self.entries_layout = QVBoxLayout(self.entries_widget)
+        self.entries_toolbar = QHBoxLayout()
+        self.entries_label = QLabel("Entries")
+        self.add_entry_button = QPushButton("Add Entry")
+        self.entries_toolbar.addWidget(self.entries_label)
+        self.entries_toolbar.addStretch()
+        self.entries_toolbar.addWidget(self.add_entry_button)
+        self.entries_layout.addLayout(self.entries_toolbar)
+        self.entries_list = QListWidget()
+        self.entries_layout.addWidget(self.entries_list)
+        self.main_content.addWidget(self.entries_widget)
 
-        # Connect signals
-        self.item_list.item_selected.connect(self.detail_panel.show_item_details)
+        # Entry detail view
+        self.detail_widget = QWidget()
+        self.detail_layout = QVBoxLayout(self.detail_widget)
+        self.detail_label = QLabel("Entry Details")
+        self.detail_view = QTextBrowser() # Use QTextBrowser for rich text
+        self.detail_layout.addWidget(self.detail_label)
+        self.detail_layout.addWidget(self.detail_view)
+        self.main_content.addWidget(self.detail_widget)
 
-        self.setCentralWidget(splitter)
+        self.splitter.addWidget(self.main_content)
+        self.splitter.setSizes([200, 800])
+        self.main_content.setSizes([300, 500])
 
-    def populate_table(self, data):
-        """Populate the vault with data (compatibility)"""
-        self.vault_data = data
-        self.item_list.populate_items(data)
+        # --- Connect Signals ---
+        self.manage_categories_button.clicked.connect(self.open_category_dialog)
+        self.add_entry_button.clicked.connect(self.open_add_entry_dialog)
+        self.entries_list.currentItemChanged.connect(self.display_entry_details)
 
-    def get_all_data(self):
-        """Get all vault data (compatibility)"""
-        return self.vault_data
+        # --- Initial Data Load ---
+        self.load_categories()
+        self.load_entries()
+
+    def load_categories(self):
+        self.category_list.clear()
+        for category in self.category_manager.get_all_categories():
+            item = QListWidgetItem(category.name)
+            item.setData(Qt.UserRole, category.id)
+            self.category_list.addItem(item)
+
+    def load_entries(self):
+        self.entries_list.clear()
+        for entry in self.vault_data.get("entries", []):
+            item = QListWidgetItem(entry.get("title", "No Title"))
+            item.setData(Qt.UserRole, entry.get("id"))
+            self.entries_list.addItem(item)
+
+    def display_entry_details(self, current_item, previous_item):
+        if not current_item:
+            self.detail_view.setHtml("<p>Select an entry to see details.</p>")
+            return
+
+        entry_id = current_item.data(Qt.UserRole)
+        entry_data = next((e for e in self.vault_data["entries"] if e["id"] == entry_id), None)
+
+        if entry_data:
+            # Escape all user-provided data before inserting into HTML
+            title = html.escape(entry_data.get('title', ''))
+            username = html.escape(entry_data.get('username', ''))
+            url = html.escape(entry_data.get('url', ''))
+            notes = html.escape(entry_data.get('notes', '')).replace('\n', '<br>')
+
+            details_html = f"""
+                <h3>{title}</h3>
+                <p><b>Username:</b> {username}</p>
+                <p><b>Password:</b> ********</p>
+                <p><b>URL:</b> {url}</p>
+                <p><b>Notes:</b><br>{notes}</p>
+            """
+            self.detail_view.setHtml(details_html)
+        else:
+            self.detail_view.setHtml("<p>Entry details not found.</p>")
+
+    def open_add_entry_dialog(self):
+        categories = self.category_manager.get_all_categories()
+        dialog = AddEntryScreen(categories, self)
+        if dialog.exec():
+            entry_data = dialog.get_entry_data()
+            entry_data['id'] = str(uuid.uuid4()) # Assign a unique ID
+            self.vault_data["entries"].append(entry_data)
+            self.load_entries()
+            self.save_vault_callback()
+
+    def open_category_dialog(self):
+        dialog = CategoryScreen(self.category_manager, self)
+        dialog.exec()
+        # After closing, the category_manager object is updated.
+        # We need to sync this back to our main vault_data and save.
+        self.vault_data["categories"] = self.category_manager.to_dict()["categories"]
+        self.load_categories()
+        self.save_vault_callback()
