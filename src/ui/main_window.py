@@ -39,7 +39,7 @@ class MainWindow(tk.Toplevel):
         sidebar = ttk.Frame(parent, padding=5)
         
         # Category list
-        ttk.Label(sidebar, text="Categories", font=("-size", 12, "bold")).pack(anchor=tk.W, pady=(0, 5))
+        ttk.Label(sidebar, text="Categories", font=("-size", 12, "-weight", "bold")).pack(anchor=tk.W, pady=(0, 5))
         self.category_tree = ttk.Treeview(sidebar, show="tree", selectmode="browse")
         self.category_tree.pack(fill=tk.BOTH, expand=True)
         self.category_tree.bind("<<TreeviewSelect>>", self._on_category_select)
