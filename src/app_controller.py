@@ -1,51 +1,77 @@
 # src/app_controller.py
-from PySide6.QtCore import QObject, Signal
-
 from src.services.vault_service import VaultService
-from src.category_manager import CategoryManager
-from src.models.vault import Vault
 
-class ApplicationController(QObject):
+class ApplicationController:
     """
     Acts as a bridge between the UI and the service layer.
-    It translates UI events into service calls and service results into UI signals.
+    Uses callbacks to communicate back to the UI layer.
     """
-    unlock_feedback = Signal(bool, str)
-    # The signal still sends raw data types to the UI to avoid refactoring the UI yet.
-    show_main_window_signal = Signal(list, CategoryManager)
-    lock_signal = Signal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
         self.vault_service = VaultService()
         self.vault_exists = self.vault_service.vault_exists
 
+        # Callbacks to be set by the UI layer
+        self.unlock_feedback = None
+        self.show_main_window_signal = None
+        self.lock_signal = None
+        self.on_data_updated = None
+        self.on_categories_updated = None
+
     def handle_unlock(self, password: str):
-        """
-        Handles the unlock logic by calling the VaultService and processing the result.
-        """
+        """Handles the unlock logic by calling the VaultService."""
         success, message, vault = self.vault_service.unlock_or_create(password)
+        if self.unlock_feedback: self.unlock_feedback(success, message)
+        if success and vault:
+            self.vault_exists = True
+            if self.show_main_window_signal:
+                self.show_main_window_signal(vault.entries, vault.category_manager)
 
-        self.unlock_feedback.emit(success, message)
+    # --- Entry Callbacks ---
+    def handle_add_entry(self, entry_data: dict):
+        self.vault_service.add_entry(entry_data)
+        if self.on_data_updated and self.vault_service.vault:
+            self.on_data_updated(self.vault_service.vault.entries)
 
-        if success and vault is not None:
-            self.vault_exists = True # Update state after successful creation
+    def handle_edit_entry(self, entry_data: dict):
+        self.vault_service.update_entry(entry_data)
+        if self.on_data_updated and self.vault_service.vault:
+            self.on_data_updated(self.vault_service.vault.entries)
 
-            # Convert model objects back to dicts for the UI layer
-            ui_data = [entry.to_dict() for entry in vault.entries]
+    def handle_delete_entry(self, entry_id: str):
+        self.vault_service.delete_entry(entry_id)
+        if self.on_data_updated and self.vault_service.vault:
+            self.on_data_updated(self.vault_service.vault.entries)
 
-            self.show_main_window_signal.emit(ui_data, vault.category_manager)
+    # --- Category Callbacks ---
+    def handle_category_add(self, name: str):
+        try:
+            self.vault_service.add_category(name)
+            if self.on_categories_updated and self.vault_service.vault:
+                self.on_categories_updated(self.vault_service.vault.category_manager)
+        except ValueError as e:
+            # In a real app, this would go to a UI error handler
+            print(f"Error adding category: {e}")
 
-    def handle_data_change(self, all_data: list, category_manager_state: dict):
-        """
-        Passes data change requests from the UI to the VaultService.
-        """
-        self.vault_service.save_data(all_data, category_manager_state)
+    def handle_category_edit(self, cat_id: str, new_name: str):
+        try:
+            self.vault_service.update_category(cat_id, new_name)
+            if self.on_categories_updated and self.vault_service.vault:
+                self.on_categories_updated(self.vault_service.vault.category_manager)
+        except ValueError as e:
+            print(f"Error updating category: {e}")
+
+    def handle_category_delete(self, cat_id: str):
+        try:
+            self.vault_service.delete_category(cat_id)
+            if self.on_data_updated and self.vault_service.vault:
+                self.on_data_updated(self.vault_service.vault.entries)
+            if self.on_categories_updated and self.vault_service.vault:
+                self.on_categories_updated(self.vault_service.vault.category_manager)
+        except ValueError as e:
+            print(f"Error deleting category: {e}")
 
     def lock_vault(self):
-        """
-        Locks the vault via the VaultService and signals the UI to lock.
-        """
+        """Locks the vault and signals the UI."""
         self.vault_service.lock()
-        self.lock_signal.emit()
-        print("Lock signal emitted to UI.")
+        if self.lock_signal:
+            self.lock_signal()
